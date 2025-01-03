@@ -124,24 +124,25 @@ composer create-project laravel/laravel change-request-system
 cd change-request-system
 
 # Install additional packages
-composer require laravel/ui
+composer require laravel/ui predis/predis spatie/laravel-permission
 php artisan ui bootstrap --auth
+
+mkdir -p app/Services
+mkdir -p app/Repositories
+mkdir -p app/Http/Resources
+mkdir -p app/Events
+mkdir -p app/Listeners
+mkdir -p app/Notifications
+
+cp .env.example .env
+php artisan key:generate
 ```
 
-### 3. Configure Database
-Edit `.env` file:
-```plaintext
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=your_database_name
-DB_USERNAME=your_username
-DB_PASSWORD=your_password
-```
-
-### 4. Run Initial Setup
+### 3. Run Initial Setup
 ```bash
 # Create database tables
+php artisan migrate
+php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
 php artisan migrate
 
 # Start development server
