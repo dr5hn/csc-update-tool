@@ -1,282 +1,66 @@
-# Database Change Request System
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-## Overview
-This system allows users to request changes to the Countries, States, and Cities database in a controlled and organized way. Think of it like a "suggestion box" where users can propose updates to the data.
+<p align="center">
+<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+</p>
 
-## Why Laravel Instead of Core PHP?
-As a Core PHP developer, you might wonder why we're using Laravel. Here's why:
+## About Laravel
 
-### 1. Problems with Core PHP Approach:
-```php
-// In Core PHP, you'd need to write security manually:
-session_start();
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit();
-}
+Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-// Manual database connection in every file
-$conn = mysqli_connect('localhost', 'username', 'password', 'database');
+- [Simple, fast routing engine](https://laravel.com/docs/routing).
+- [Powerful dependency injection container](https://laravel.com/docs/container).
+- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
+- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
+- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
+- [Robust background job processing](https://laravel.com/docs/queues).
+- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-// Manual SQL injection prevention
-$userId = mysqli_real_escape_string($conn, $_POST['user_id']);
-$query = "SELECT * FROM users WHERE id = '$userId'";
-```
+Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-### 2. How Laravel Makes It Better:
-```php
-// Laravel Authentication - One line!
-Route::middleware(['auth'])->group(function () {
-    // Your protected routes here
-});
+## Learning Laravel
 
-// Database queries - Safer and easier
-$user = User::find($userId);  // No SQL injection possible!
-```
+Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-## Project Structure Explained
+You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
 
-### 1. Main Folders You'll Work With:
-```plaintext
-your-project/
-│
-├── app/                 👉 Your PHP code goes here
-│   ├── Http/           
-│   │   ├── Controllers/  👉 Like your old .php files that handle requests
-│   │   └── Middleware/   👉 Security checks
-│   │
-│   └── Models/         👉 Database table definitions
-│
-├── resources/          👉 Your HTML templates
-│   └── views/          
-│
-└── routes/             👉 Like your old index.php that had all URLs
-    └── web.php
-```
+If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-### 2. File Comparisons (Core PHP vs Laravel)
+## Laravel Sponsors
 
-#### Core PHP Way:
-```php
-// login.php
-<?php
-session_start();
-$conn = mysqli_connect('localhost', 'user', 'pass', 'db');
+We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
 
-if ($_POST) {
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $password = md5($_POST['password']); // Not secure!
-    
-    $query = "SELECT * FROM users WHERE email='$email' AND password='$password'";
-    $result = mysqli_query($conn, $query);
-    
-    if (mysqli_num_rows($result) > 0) {
-        $_SESSION['logged_in'] = true;
-        header('Location: dashboard.php');
-    }
-}
-?>
-<html>
-    <form method="POST">
-        <!-- Form HTML here -->
-    </form>
-</html>
-```
+### Premium Partners
 
-#### Laravel Way:
-```php
-// LoginController.php
-class LoginController extends Controller
-{
-    public function login(Request $request)
-    {
-        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-            return redirect('/dashboard');
-        }
-        return back()->withErrors(['email' => 'Invalid credentials']);
-    }
-}
+- **[Vehikl](https://vehikl.com/)**
+- **[Tighten Co.](https://tighten.co)**
+- **[WebReinvent](https://webreinvent.com/)**
+- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
+- **[64 Robots](https://64robots.com)**
+- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
+- **[Cyber-Duck](https://cyber-duck.co.uk)**
+- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
+- **[Jump24](https://jump24.co.uk)**
+- **[Redberry](https://redberry.international/laravel/)**
+- **[Active Logic](https://activelogic.com)**
+- **[byte5](https://byte5.de)**
+- **[OP.GG](https://op.gg)**
 
-// login.blade.php (HTML template)
-@extends('layouts.app')
-@section('content')
-    <form method="POST" action="{{ route('login') }}">
-        <!-- Form HTML here -->
-    </form>
-@endsection
-```
+## Contributing
 
-## Step-by-Step Setup Guide
+Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
 
-### 1. Install Required Software
-```bash
-# Install PHP 8.1 or higher
-# Install Composer (PHP's package manager)
-# Install MySQL or PostgreSQL
-```
+## Code of Conduct
 
-### 2. Create New Project
-```bash
-# Create project
-composer create-project laravel/laravel change-request-system
+In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
-# Enter project folder
-cd change-request-system
+## Security Vulnerabilities
 
-# Install additional packages
-composer require laravel/ui predis/predis spatie/laravel-permission
-php artisan ui bootstrap --auth
+If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-mkdir -p app/Services
-mkdir -p app/Repositories
-mkdir -p app/Http/Resources
-mkdir -p app/Events
-mkdir -p app/Listeners
-mkdir -p app/Notifications
+## License
 
-cp .env.example .env
-php artisan key:generate
-```
-
-### 3. Run Initial Setup
-```bash
-# Create database tables
-php artisan migrate
-php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
-php artisan migrate
-
-# Start development server
-php artisan serve
-```
-
-## Common Tasks Guide
-
-### 1. Creating a New Page
-In Core PHP, you'd create a new .php file. In Laravel:
-
-1. Create a Route (routes/web.php):
-```php
-Route::get('/change-request', [ChangeRequestController::class, 'create']);
-```
-
-2. Create a Controller (app/Http/Controllers/ChangeRequestController.php):
-```php
-class ChangeRequestController extends Controller
-{
-    public function create()
-    {
-        return view('change-requests.create');
-    }
-}
-```
-
-3. Create a View (resources/views/change-requests/create.blade.php):
-```php
-@extends('layouts.app')
-@section('content')
-    <!-- Your HTML here -->
-@endsection
-```
-
-### 2. Working with Database
-Instead of writing SQL queries:
-
-```php
-// Core PHP way
-$query = "SELECT * FROM cities WHERE state_id = '$stateId'";
-$result = mysqli_query($conn, $query);
-
-// Laravel way
-$cities = City::where('state_id', $stateId)->get();
-```
-
-### 3. Form Processing
-Instead of checking $_POST:
-
-```php
-// Core PHP way
-if ($_POST) {
-    $title = $_POST['title'];
-    // Insert into database
-}
-
-// Laravel way
-public function store(Request $request)
-{
-    $changeRequest = new ChangeRequest;
-    $changeRequest->title = $request->title;
-    $changeRequest->save();
-}
-```
-
-## Common Issues & Solutions
-
-### 1. Page Not Found
-- Check routes/web.php
-- Use `php artisan route:list` to see all routes
-
-### 2. Database Connection Failed
-- Check .env file settings
-- Ensure MySQL is running
-
-### 3. Class Not Found
-Run: `composer dump-autoload`
-
-## Development Workflow
-
-1. Create new feature branch
-2. Make changes
-3. Test changes
-4. Create pull request
-5. Wait for review
-
-## Testing Your Changes
-
-```bash
-# Start local server
-php artisan serve
-
-# Run tests
-php artisan test
-
-# Clear cache if needed
-php artisan cache:clear
-```
-
-## Need Help?
-
-1. Check Laravel documentation: https://laravel.com/docs
-2. Common issues: https://stackoverflow.com/questions/tagged/laravel
-3. Local files to check:
-   - routes/web.php for URLs
-   - app/Http/Controllers for logic
-   - resources/views for HTML
-
-## Security Best Practices
-
-1. Always validate user input
-2. Use Laravel's built-in CSRF protection
-3. Never trust user data
-4. Use prepared statements (Laravel does this automatically)
-
-## Performance Tips
-
-1. Use pagination for large data sets:
-```php
-$cities = City::paginate(100);
-```
-
-2. Cache frequently accessed data:
-```php
-$countries = Cache::remember('countries', 3600, function () {
-    return Country::all();
-});
-```
-
-3. Load only what you need:
-```php
-$cities = City::select(['id', 'name'])->get();
-```
-
-## Questions?
-Feel free to ask for help if you get stuck! The best way to learn Laravel is by doing, and it's okay to make mistakes along the way.
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
