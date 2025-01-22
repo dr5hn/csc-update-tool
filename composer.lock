@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c0b30c7c52b1e12c83bf38e7c5beee7a",
+    "content-hash": "eeced15baf9324b6c4b3e73f8a48a25a",
     "packages": [
         {
             "name": "brick/math",
@@ -2006,6 +2006,85 @@
             "time": "2024-12-08T08:18:47+00:00"
         },
         {
+            "name": "maize-tech/laravel-magic-login",
+            "version": "2.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/maize-tech/laravel-magic-login.git",
+                "reference": "8733845b567963c0cce6238c3c061d3d9914d5fd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/maize-tech/laravel-magic-login/zipball/8733845b567963c0cce6238c3c061d3d9914d5fd",
+                "reference": "8733845b567963c0cce6238c3c061d3d9914d5fd",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/contracts": "^10.10.1|^11.0",
+                "illuminate/database": "^10.10.1|^11.0",
+                "illuminate/http": "^10.10.1|^11.0",
+                "illuminate/routing": "^10.10.1|^11.0",
+                "illuminate/support": "^10.10.1|^11.0",
+                "php": "^8.1",
+                "spatie/laravel-package-tools": "^1.14.1"
+            },
+            "require-dev": {
+                "larastan/larastan": "^2.0.1",
+                "laravel/pint": "^1.0",
+                "nunomaduro/collision": "^7.8|^8.1",
+                "orchestra/testbench": "^8.0|^9.0",
+                "pestphp/pest": "^2.34",
+                "pestphp/pest-plugin-arch": "^2.7",
+                "pestphp/pest-plugin-laravel": "^2.3",
+                "phpstan/extension-installer": "^1.3",
+                "phpstan/phpstan-deprecation-rules": "^1.0",
+                "phpstan/phpstan-phpunit": "^1.3",
+                "spatie/pest-plugin-test-time": "^2.1"
+            },
+            "type": "library",
+            "extra": {
+                "aliases": {
+                    "MagicLink": "Maize\\MagicLogin\\Facades\\MagicLink"
+                },
+                "laravel": {
+                    "providers": [
+                        "Maize\\MagicLogin\\MagicLoginServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Maize\\MagicLogin\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Enrico De Lazzari",
+                    "email": "enrico.delazzari@maize.io",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Laravel Magic Login",
+            "homepage": "https://github.com/maize-tech/laravel-magic-login",
+            "keywords": [
+                "Authentication",
+                "email",
+                "laravel",
+                "login",
+                "magic",
+                "maize-tech"
+            ],
+            "support": {
+                "issues": "https://github.com/maize-tech/laravel-magic-login/issues",
+                "source": "https://github.com/maize-tech/laravel-magic-login/tree/2.2.1"
+            },
+            "time": "2024-12-03T12:41:22+00:00"
+        },
+        {
             "name": "monolog/monolog",
             "version": "3.8.1",
             "source": {
@@ -3297,6 +3376,66 @@
                 }
             ],
             "time": "2024-04-27T21:32:50+00:00"
+        },
+        {
+            "name": "spatie/laravel-package-tools",
+            "version": "1.18.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/spatie/laravel-package-tools.git",
+                "reference": "ba67eee37d86ed775dab7dad58a7cbaf9a6cfe78"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/spatie/laravel-package-tools/zipball/ba67eee37d86ed775dab7dad58a7cbaf9a6cfe78",
+                "reference": "ba67eee37d86ed775dab7dad58a7cbaf9a6cfe78",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/contracts": "^9.28|^10.0|^11.0",
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "^1.5",
+                "orchestra/testbench": "^7.7|^8.0|^9.0",
+                "pestphp/pest": "^1.22|^2",
+                "phpunit/phpunit": "^9.5.24|^10.5",
+                "spatie/pest-plugin-test-time": "^1.1|^2.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Spatie\\LaravelPackageTools\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Freek Van der Herten",
+                    "email": "freek@spatie.be",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Tools for creating Laravel packages",
+            "homepage": "https://github.com/spatie/laravel-package-tools",
+            "keywords": [
+                "laravel-package-tools",
+                "spatie"
+            ],
+            "support": {
+                "issues": "https://github.com/spatie/laravel-package-tools/issues",
+                "source": "https://github.com/spatie/laravel-package-tools/tree/1.18.3"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/spatie",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-01-22T08:51:18+00:00"
         },
         {
             "name": "symfony/clock",
