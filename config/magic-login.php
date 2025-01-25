@@ -26,7 +26,7 @@ return [
     |
     */
 
-    'expiration' => null,
+    'expiration' => 30,  // Magic link expires in 30 minutes,
 
     /*
     |--------------------------------------------------------------------------
@@ -51,7 +51,7 @@ return [
     |
     */
 
-    'redirect_url' => null,
+    'redirect_url' => '/dashboard',  // Default redirect after login,
 
     /*
     |--------------------------------------------------------------------------
@@ -81,7 +81,7 @@ return [
     |
     */
 
-    'force_single' => null,
+    'force_single' => true,  // Only one valid magic link per user,
 
     /*
     |--------------------------------------------------------------------------
@@ -96,7 +96,7 @@ return [
     |
     */
 
-    'logins_limit' => null,
+    'logins_limit' => 1,  // Each link can only be used once,
 
     /*
     |--------------------------------------------------------------------------
