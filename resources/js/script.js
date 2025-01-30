@@ -6,54 +6,17 @@ $(function() {
     $('#countries-table').hide();
     $('#states-table').hide();
     $('#cities-table').hide();
+    
+    function switchTab(tabId, tableId) {
+        $('#regions-table, #subregions-table, #countries-table, #states-table, #cities-table').hide();
 
-    $('#regions-tab').on('click', function() {
-        $('#regions-table').show();
-        $('#subregions-table').hide();
-        $('#countries-table').hide();
-        $('#states-table').hide();
-        $('#cities-table').hide();
+        $(tableId).show();
         $('.active-tab').removeClass('active-tab');
-        $('#regions-tab').addClass('active-tab');
-    });
+        $('#' + tabId).addClass('active-tab');
+    }
 
-    $('#subregions-tab').on('click', function() {
-        $('#regions-table').hide();
-        $('#subregions-table').show();
-        $('#countries-table').hide();
-        $('#states-table').hide();
-        $('#cities-table').hide();
-        $('.active-tab').removeClass('active-tab');
-        $('#subregions-tab').addClass('active-tab');
-    });
-
-    $('#countries-tab').on('click', function() {
-        $('#regions-table').hide();
-        $('#subregions-table').hide();
-        $('#countries-table').show();
-        $('#states-table').hide();
-        $('#cities-table').hide();
-        $('.active-tab').removeClass('active-tab');
-        $('#countries-tab').addClass('active-tab');
-    });
-
-    $('#states-tab').on('click', function() {
-        $('#regions-table').hide();
-        $('#subregions-table').hide();
-        $('#countries-table').hide();
-        $('#states-table').show();
-        $('#cities-table').hide();
-        $('.active-tab').removeClass('active-tab');
-        $('#states-tab').addClass('active-tab');
-    });
-    $('#cities-tab').on('click', function() {
-        $('#regions-table').hide();
-        $('#subregions-table').hide();
-        $('#countries-table').hide();
-        $('#states-table').hide();
-        $('#cities-table').show();
-        $('.active-tab').removeClass('active-tab');
-        $('#cities-tab').addClass('active-tab');
+    $('#table-tabs button').on('click', function() {
+        switchTab($(this).attr('id'), $(this).attr('data-table'));
     });
 
     // Function to filter the table rows based on the search input

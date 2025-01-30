@@ -25,12 +25,13 @@
                                 placeholder="Search..." />
                         </div>
 
-                        <div class="flex border-b border-gray-200 mb-6">
-                            <button type="button" class="py-2 px-4 font-medium border-transparent text-gray-500 hover:text-gray-700 active-tab" id="regions-tab">Regions</button>
-                            <button type="button" class="py-2 px-4 font-medium border-transparent text-gray-500 hover:text-gray-700" id="subregions-tab">Subregions</button>
-                            <button type="button" class="py-2 px-4 font-medium border-transparent text-gray-500 hover:text-gray-700" id="countries-tab">Countries</button>
-                            <button type="button" class="py-2 px-4 font-medium border-transparent text-gray-500 hover:text-gray-700" id="states-tab">States</button>
-                            <button type="button" class="py-2 px-4 font-medium border-transparent text-gray-500 hover:text-gray-700" id="cities-tab">Cities</button>
+                        <div class="flex border-b border-gray-200 mb-6" id="table-tabs">
+                            <button type="button" class="py-2 px-4 font-medium border-transparent text-gray-500 hover:text-gray-700 active-tab" id="regions-tab" data-table="#regions-table">Regions</button>
+                            <button type="button" class="py-2 px-4 font-medium border-transparent text-gray-500 hover:text-gray-700" id="subregions-tab" data-table="#subregions-table" >Subregions</button>
+                            <button type="button" class="py-2 px-4 font-medium border-transparent text-gray-500 hover:text-gray-700" id="countries-tab" data-table="#countries-table">Countries</button>
+                            <button type="button" class="py-2 px-4 font-medium border-transparent text-gray-500 hover:text-gray-700" id="states-tab" data-table="#states-table">States</button>
+                            <button type="button" class="py-2 px-4 font-medium border-transparent text-gray-500 hover:text-gray-700" id="cities-tab" data-table="#cities-table">Cities</button>
+                            
                         </div>
 
                         <!-- Add Row Button -->
