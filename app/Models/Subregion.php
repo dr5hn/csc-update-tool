@@ -8,6 +8,7 @@ class Subregion extends Model
 {
 
     protected $fillable = [
+        'id',
         'name',
         'translations',
         'region_id',
@@ -20,6 +21,7 @@ class Subregion extends Model
     public static function getTableHeaders()
     {
         return [
+            'id' => 'ID',
             'name' => 'Subregion Name',
             'translations' => 'Translations',
             'region_id' => 'Region ID',

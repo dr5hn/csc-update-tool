@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Country extends Model
 {
     protected $fillable = [
+        'id',
         'name',
         'iso3',
         'numeric_code',
@@ -38,6 +39,7 @@ class Country extends Model
    public static function getTableHeaders()
     {
         return [
+            'id' => 'ID',
             'name' => 'Country Name',
             'iso3' => 'ISO 3',
             'numeric_code' => 'Numeric Code',

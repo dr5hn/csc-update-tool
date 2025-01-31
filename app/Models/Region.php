@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Region extends Model
 {
     protected $fillable = [
+        'id',
         'name',
         'translations',
         'created_at',
@@ -18,6 +19,7 @@ class Region extends Model
     public static function getTableHeaders()
     {
         return [
+            'id' => 'ID',
             'name' => 'Region Name',
             'translations' => 'Translations',
             'created_at' => 'Created At',

@@ -25,13 +25,35 @@
                                 placeholder="Search..." />
                         </div>
 
+                        <!-- dropdown for table selection -->
+                        <div class="flex justify-between mb-4">
+                            <div class="mb-6 w-1/2" id="countries-dropdown" style="display:none;">
+                                <select class="w-full p-2 border rounded-md">
+                                    <option value="" disabled selected>All Countries</option>
+                                @foreach($countryData as $country)
+                                <option value="{{ $country->id }}">{{ $country->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-6 w-1/2" id="states-dropdown" style="display:none;">
+                            <select class="w-full p-2 border rounded-md">
+                                <option value="" disabled selected>All States</option>
+                                @foreach($stateData as $state)
+                                <option value="{{ $state->id }}">{{ $state->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        </div>
+
+
+                        <!-- table tabs -->
                         <div class="flex border-b border-gray-200 mb-6" id="table-tabs">
                             <button type="button" class="py-2 px-4 font-medium border-transparent text-gray-500 hover:text-gray-700 active-tab" id="regions-tab" data-table="#regions-table">Regions</button>
-                            <button type="button" class="py-2 px-4 font-medium border-transparent text-gray-500 hover:text-gray-700" id="subregions-tab" data-table="#subregions-table" >Subregions</button>
+                            <button type="button" class="py-2 px-4 font-medium border-transparent text-gray-500 hover:text-gray-700" id="subregions-tab" data-table="#subregions-table">Subregions</button>
                             <button type="button" class="py-2 px-4 font-medium border-transparent text-gray-500 hover:text-gray-700" id="countries-tab" data-table="#countries-table">Countries</button>
                             <button type="button" class="py-2 px-4 font-medium border-transparent text-gray-500 hover:text-gray-700" id="states-tab" data-table="#states-table">States</button>
                             <button type="button" class="py-2 px-4 font-medium border-transparent text-gray-500 hover:text-gray-700" id="cities-tab" data-table="#cities-table">Cities</button>
-                            
+
                         </div>
 
                         <!-- Add Row Button -->
@@ -52,6 +74,7 @@
                                 <tbody class="bg-white divide-y divide-gray-200" id="table-body">
                                     @foreach ($regionData as $region)
                                     <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ $region->id }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $region->name }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $region->translations }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $region->created_at }}</td>
@@ -77,6 +100,7 @@
                                 <tbody class="bg-white divide-y divide-gray-200" id="table-body">
                                     @foreach ($subregionData as $subregion)
                                     <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ $subregion->id }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $subregion->name }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $subregion->translations }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $subregion->region_id }}</td>
@@ -104,6 +128,7 @@
                                 <tbody class="bg-white divide-y divide-gray-200" id="table-body">
                                     @foreach ($countryData as $country)
                                     <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ $country->id }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $country->name }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $country->iso3 }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $country->numeric_code }}</td>
@@ -149,6 +174,7 @@
                                 <tbody class="bg-white divide-y divide-gray-200" id="table-body">
                                     @foreach ($stateData as $state)
                                     <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ $state->id }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $state->name }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{$state->country_id }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $state->country_code }}</td>
@@ -180,6 +206,7 @@
                                 <tbody class="bg-white divide-y divide-gray-200" id="table-body">
                                     @foreach ($cityData as $city)
                                     <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ $city->id }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $city->name }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $city->state_id }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">{{ $city->state_code }}</td>
@@ -194,7 +221,7 @@
 
                                     </tr>
                                     @endforeach
-                                    
+
                                 </tbody>
                             </table>
                         </div>
