@@ -46,6 +46,11 @@ class State extends Model
         return self::with('country')->limit(10)->get();
     }
 
+    public static function getDropdownData()
+    {
+        return self::with('country')->get();
+    }
+
     // A state belongs to a country
     public function country()
     {

@@ -17,6 +17,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/change-requests/new', [ChangeRequestController::class, 'changeRequest'])->name('change-requests.new');
+    Route::get('/states', [ChangeRequestController::class, 'getStates'])->name('states');
+    Route::get('/states-dropdown', [ChangeRequestController::class, 'getStatesDropdown'])->name('states-dropdown');
+    Route::get('/cities-by-country', [ChangeRequestController::class, 'getCitiesByCountry'])->name('cities-by-country');
+    Route::get('/cities-by-state', [ChangeRequestController::class, 'getCitiesByState'])->name('cities-by-state');
 });
 
 require __DIR__.'/auth.php';

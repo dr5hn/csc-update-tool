@@ -6,8 +6,6 @@
     </x-slot>
 
     <div class="py-12">
-
-
         <div class="min-h-full w-full" id="artifacts-component-root-react">
             <div class="min-h-screen bg-gray-50 py-8">
                 <div class="max-w-7xl mx-auto px-4">
@@ -23,26 +21,30 @@
                                 id="search-input"
                                 class="w-full p-2 border rounded-md"
                                 placeholder="Search..." />
+
                         </div>
 
                         <!-- dropdown for table selection -->
                         <div class="flex justify-between mb-4">
                             <div class="mb-6 w-1/2" id="countries-dropdown" style="display:none;">
-                                <select class="w-full p-2 border rounded-md">
+                                <select class="w-full p-2 border rounded-md" id="countries-select">
                                     <option value="" disabled selected>All Countries</option>
-                                @foreach($countryData as $country)
-                                <option value="{{ $country->id }}">{{ $country->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="mb-6 w-1/2" id="states-dropdown" style="display:none;">
-                            <select class="w-full p-2 border rounded-md">
-                                <option value="" disabled selected>All States</option>
-                                @foreach($stateData as $state)
-                                <option value="{{ $state->id }}">{{ $state->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                                    @foreach($countryData as $country)
+                                    <option value="{{ $country->id }}">{{ $country->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-6 w-1/2" id="cities-countries-dropdown" style="display:none;">
+                                <select class="w-full p-2 border rounded-md" id="cities-countries-select">
+                                    <option value="" disabled selected>All Countries</option>
+                                    @foreach($countryData as $country)
+                                    <option value="{{ $country->id }}">{{ $country->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-6 w-1/2" id="states-dropdown" style="display:none;">
+                                @include('change-requests.partials.states-dropdown', ['states' => $stateData])
+                            </div>
                         </div>
 
 
@@ -163,67 +165,12 @@
 
                         <!-- States Table -->
                         <div class="overflow-x-auto mt-8" id="states-table">
-                            <table class="min-w-full divide-y divide-gray-200" id="table">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        @foreach ($stateHeaders as $header)
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $header }}</th>
-                                        @endforeach
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200" id="table-body">
-                                    @foreach ($stateData as $state)
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $state->id }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $state->name }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{$state->country_id }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $state->country_code }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $state->fips_code }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $state->iso2 }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $state->type }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $state->latitude }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $state->longitude }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $state->created_at }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $state->updated_at }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $state->flag }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $state->wikiDataId }}</td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                            @include('change-requests.partials.states', ['states' => $stateData, 'stateHeaders' => $stateHeaders])
                         </div>
 
                         <!-- Cities Table -->
                         <div class="overflow-x-auto mt-8" id="cities-table">
-                            <table class="min-w-full divide-y divide-gray-200" id="table">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        @foreach ($cityHeaders as $header)
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $header }}</th>
-                                        @endforeach
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200" id="table-body">
-                                    @foreach ($cityData as $city)
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $city->id }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $city->name }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $city->state_id }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $city->state_code }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $city->country_id }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $city->country_code }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $city->latitude }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $city->longitude }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $city->created_at }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $city->updated_at }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $city->flag }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ $city->wikiDataId }}</td>
-
-                                    </tr>
-                                    @endforeach
-
-                                </tbody>
-                            </table>
+                            @include('change-requests.partials.cities', ['cities' => $cityData, 'cityHeaders' => $cityHeaders])
                         </div>
 
 
