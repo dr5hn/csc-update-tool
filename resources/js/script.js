@@ -1,10 +1,14 @@
 import $ from "jquery";
 
 $(function () {
+    // hide all tables and dropdowns initially
     $("#subregions-table").hide();
     $("#countries-table").hide();
     $("#states-table").hide();
     $("#cities-table").hide();
+    $("#countries-dropdown").hide();
+    $("#states-dropdown").hide();
+    $("#cities-countries-dropdown").hide();
 
     function switchTab(tabId, tableId) {
         $(
@@ -27,71 +31,44 @@ $(function () {
     // Function to filter the table rows based on the search input
     $("#search-input").on("input", function () {
         const searchText = $(this).val().toLowerCase();
-        $("#table-body tr").each(function () {
-            const rowText = $(this).text().toLowerCase();
-            $(this).toggle(rowText.indexOf(searchText) !== -1);
-            $("#countries-dropdown").hide();
-            $("#states-dropdown").hide();
-        });
+        const country_id = $("#countries-select").val();
+        $("#states-table").load(`/states?country_id=${country_id}&search=${searchText}`);
     });
-    // Hide the dropdown initially
-    $("#countries-dropdown").hide();
-    $("#states-dropdown").hide();
-    $("#cities-countries-dropdown").hide();
 
     // When the "States" tab is clicked, show the dropdown
-    $("#states-tab").on("click", function () {
-        $("#countries-dropdown").show(); // Show the dropdown
-        $("#cities-countries-dropdown").hide();
-        $("#states-dropdown").hide();
+    $("#states-tab").on("click", () => {
+        $("#countries-select").prop("selectedIndex", 0);
+        $("#countries-dropdown").show();
+        $("#cities-countries-dropdown, #states-dropdown").hide();
         $("#countries-select").on("change", function () {
-            $("#states-table").show();
-            $.ajax({
-                url: "/states",
-                type: "GET",
-                data: { country_id: $(this).val() },
-                success: function (data) {
-                    $("#states-table").html(data);
-                },
-            });
+            const searchText = $("#search-input").val().toLowerCase();
+            $("#states-table")
+                .show()
+                .load(`/states?country_id=${$(this).val()}&search=${searchText}`);
         });
     });
 
     // When the "Cities" tab is clicked, show the dropdown
-    $("#cities-tab").on("click", function () {
-        $("#states-dropdown").show(); // Show the dropdown
-        $("#countries-dropdown").hide();
-        $("#cities-countries-dropdown").show();
+    $("#cities-tab").on("click", () => {
+        $("#countries-select").prop("selectedIndex", 0);
+        $("#states-select").prop("selectedIndex", 0);
+        $("#countries-dropdown").show();
+        $("#states-dropdown").show();
         $("#cities-table").show();
-
-        $("#cities-countries-select").on("change", function () {
-            $.ajax({
-                url: "/states-dropdown",
-                type: "GET",
-                data: { country_id: $(this).val() },
-                success: function (data) {
-                    $("#states-dropdown").html(data);
-
-                    $("#states-select").on("change", function () {
-                        $.ajax({
-                            url: "/cities-by-state",
-                            type: "GET",
-                            data: { state_id: $(this).val() },
-                            success: function (data) {
-                                $("#cities-table").html(data);
-                            },
-                        });
-                    });
-                },
+        $("#countries-select").on("change", function () {
+            $("#states-table").hide();
+            const country_id = $(this).val();
+            $.get(`/states-dropdown?country_id=${country_id}`, (data) => {
+                $("#states-dropdown").html(data);
+                $("#states-select").on("change", function () {
+                    $("#cities-table").load(
+                        `/cities-by-state?state_id=${$(this).val()}`
+                    );
+                });
             });
-            $.ajax({
-                url: "/cities-by-country",
-                type: "GET",
-                data: { country_id: $(this).val() },
-                success: function (data) {
-                    $("#cities-table").html(data);
-                },
-            });
+            $("#cities-table").load(
+                `/cities-by-country?country_id=${country_id}`
+            );
         });
     });
 });
