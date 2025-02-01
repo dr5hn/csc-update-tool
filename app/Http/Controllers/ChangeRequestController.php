@@ -49,7 +49,16 @@ class ChangeRequestController extends Controller
     {
         $stateHeaders = State::getTableHeaders();
         $country_id = $request->input('country_id');
-        $states = State::with('country')->where('country_id', $country_id)->get();
+        $searchText = $request->input('search');
+        if ($country_id && $searchText) {
+            $states = State::with('country')->where('country_id', $country_id)->where('name', 'like', '%' . $searchText . '%')->get();
+        } else if ($country_id) {
+            $states = State::with('country')->where('country_id', $country_id)->get();
+        } else if ($searchText) {
+            $states = State::with('country')->where('name', 'like', '%' . $searchText . '%')->get();
+        } else {
+            $states = State::with('country')->get();
+        }
         return view('change-requests.partials.states', ['states' => $states, 'stateHeaders' => $stateHeaders]);
     }
 
