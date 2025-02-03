@@ -8,6 +8,7 @@ use App\Models\State;
 use App\Models\City;
 use App\Models\Region;
 use App\Models\Subregion;
+use phpDocumentor\Reflection\Types\Nullable;
 
 class ChangeRequestController extends Controller
 {
@@ -39,10 +40,35 @@ class ChangeRequestController extends Controller
         ]);
     }
 
-    public function getCountries()
+    public function getRegions(Request $request)
+    {
+        $regionHeaders = Region::getTableHeaders();
+        $searchText = $request->input('search');
+        if ($searchText) {
+            $regions = Region::where('name', 'like', '%' . $searchText . '%')->get();
+        }
+        return view('change-requests.partials.regions', ['regionData' => $regions, 'regionHeaders' => $regionHeaders]);
+    }
+
+    public function getSubregions(Request $request)
+    {
+        $searchText = $request->input('search');
+        $subregionHeaders = Subregion::getTableHeaders();
+        if ($searchText) {
+            $subregions = Subregion::where('name', 'like', '%' . $searchText . '%')->get();
+        }
+        return view('change-requests.partials.subregions', ['subregionData' => $subregions, 'subregionHeaders' => $subregionHeaders]);
+    }
+
+    public function getCountries(Request $request)
     {
         $countries = Country::all();
-        return response()->json($countries);
+        $countryHeaders = Country::getTableHeaders();
+        $searchText = $request->input('search');
+        if ($searchText) {
+            $countries = Country::where('name', 'like', '%' . $searchText . '%')->get();
+        }
+        return view('change-requests.partials.countries', ['countryData' => $countries, 'countryHeaders' => $countryHeaders]);
     }
 
     public function getStates(Request $request)
@@ -50,9 +76,9 @@ class ChangeRequestController extends Controller
         $stateHeaders = State::getTableHeaders();
         $country_id = $request->input('country_id');
         $searchText = $request->input('search');
-        if ($country_id && $searchText) {
+        if ($country_id !== 'null' && $searchText){
             $states = State::with('country')->where('country_id', $country_id)->where('name', 'like', '%' . $searchText . '%')->get();
-        } else if ($country_id) {
+        }else if ($country_id !== 'null') {
             $states = State::with('country')->where('country_id', $country_id)->get();
         } else if ($searchText) {
             $states = State::with('country')->where('name', 'like', '%' . $searchText . '%')->get();
@@ -71,9 +97,18 @@ class ChangeRequestController extends Controller
 
     public function getCitiesByCountry(Request $request)
     {
-        $country_id = $request->input('country_id');
-        $cities = City::with('state')->where('country_id', $country_id)->get();
         $cityHeaders = City::getTableHeaders();
+        $country_id = $request->input('country_id');
+        $searchText = $request->input('search');
+        if ($country_id !== 'null' && $searchText){
+            $cities = City::with('state')->where('country_id', $country_id)->where('name', 'like', '%' . $searchText . '%')->get();
+        }else if ($country_id !== 'null') {
+            $cities = City::with('state')->where('country_id', $country_id)->get();
+        } else if ($searchText) {
+            $cities = City::with('state')->where('name', 'like', '%' . $searchText . '%')->get();
+        } else {
+            $cities = City::with('state')->get();
+        }
         return view('change-requests.partials.cities', ['cities' => $cities, 'cityHeaders' => $cityHeaders]);
     }
 
@@ -81,19 +116,18 @@ class ChangeRequestController extends Controller
     {
         $cityHeaders = City::getTableHeaders();
         $state_id = $request->input('state_id');
-        $cities = City::with('state')->where('state_id', $state_id)->get();
+        $searchText = $request->input('search');
+        if ($state_id !== 'null' && $searchText){
+            $cities = City::with('state')->where('state_id', $state_id)->where('name', 'like', '%' . $searchText . '%')->get();
+        }else if ($state_id !== 'null') {
+            $cities = City::with('state')->where('state_id', $state_id)->get();
+        } else if ($searchText) {
+            $cities = City::with('state')->where('name', 'like', '%' . $searchText . '%')->get();
+        } else {
+            $cities = City::with('state')->get();
+        }
         return view('change-requests.partials.cities', ['cities' => $cities, 'cityHeaders' => $cityHeaders]);
     }
 
-    public function getRegions()
-    {
-        $regions = Region::with('country', 'subregion')->get();
-        return response()->json($regions);
-    }
-
-    public function getSubregions()
-    {
-        $subregions = Subregion::with('country', 'region.country')->get();
-        return response()->json($subregions);
-    }
+    
 }
