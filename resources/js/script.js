@@ -8,6 +8,7 @@ $(function () {
     $("#cities-table").hide();
     $("#countries-dropdown").hide();
     $("#states-dropdown").hide();
+    $("#actions").hide();
 
     function switchTab(tabId, tableId) {
         $(
@@ -19,7 +20,6 @@ $(function () {
         $("#" + tabId).addClass("active-tab");
         $(".search-input").attr("id", "search-input-" + tabId);
 
-        
         var tabTitle = $("#" + tabId).text();
         $("#form-title").text("Database Changes Request - " + tabTitle);
     }
@@ -126,4 +126,87 @@ $(function () {
             );
         });
     });
+
+    // Event listener for the Edit button
+    $("body").on("click", ".edit-btn", function () {
+        var row = $(this).closest("tr");
+        var inputs = row.find("input");
+
+        // Enable the inputs to be editable
+        inputs.prop("disabled", false);
+
+        // Hide the Edit button and show the Save button
+        $(this).addClass("hidden");
+        row.find(".save-btn").removeClass("hidden");
+    });
+
+    // Event listener for the Save button
+    $(".save-btn").on("click", function () {
+        var row = $(this).closest("tr");
+        var inputs = row.find("input");
+
+        // Disable the inputs after saving
+        inputs.prop("disabled", true);
+
+        // Save data to sessionStorage
+        var rowData = {};
+        inputs.each(function () {
+            rowData[$(this).attr("name")] = $(this).val();
+        });
+
+        var regionId = row.find(".edit-btn").data("id");
+        sessionStorage.setItem("region_" + regionId, JSON.stringify(rowData));
+
+        // Hide the Save button and show the Edit button again
+        row.find(".edit-btn").removeClass("hidden");
+        $(this).addClass("hidden");
+    });
+
+    // Event listener for the Delete button
+    $(".delete-btn").on("click", function () {
+        var row = $(this).closest("tr");
+        var regionId = $(this).data("id");
+
+        // Remove the row data from sessionStorage
+        sessionStorage.removeItem("region_" + regionId);
+
+        // Optionally, remove the row from the table
+        row.remove();
+    });
+
+    //Load data from sessionStorage when the page is reloaded
+
+    for (var i = 0; i < sessionStorage.length; i++) {
+        var key = sessionStorage.key(i);
+        var tables = ["region", "subregion", "countries", "states", "cities"];
+
+        tables.forEach((table) => {
+            if (key.startsWith(table + "_")) {
+                var id = key.split("_")[1];
+                var savedData = JSON.parse(sessionStorage.getItem(key));
+                var row = $(`tr[data-id=${id}]`);
+
+                // Populate the inputs with saved data
+                $.each(savedData, function (name, value) {
+                    row.find('input[name="' + name + '"]').val(value);
+                });
+            }
+        });
+    }
+
+    // $(".edit-btn").each(function () {
+    //     var regionId = $(this).data("id");
+    //     var savedData = JSON.parse(
+    //         sessionStorage.getItem("region_" + regionId)
+    //     );
+
+    //     if (savedData) {
+    //         var row = $(this).closest("tr");
+
+    //         // Populate the inputs with saved data
+    //         $.each(savedData, function (name, value) {
+    //             row.find('input[name="' + name + '"]').val(value);
+    //         });
+    //     }
+    // });
 });

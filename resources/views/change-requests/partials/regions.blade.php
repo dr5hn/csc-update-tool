@@ -1,21 +1,22 @@
-<table class="min-w-full divide-y divide-gray-200" id="table">
-    <thead class="bg-gray-50">
+<table class="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-md" id="table">
+    <thead class="bg-gray-100">
         <tr>
             @foreach ($regionHeaders as $header)
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $header }}</th>
+            <th class="px-1 py-1 text-xs font-medium text-gray-500 ">{{ $header }}</th>
             @endforeach
+            <th class="px-1 py-1 text-xs font-medium text-gray-500">Actions</th>
         </tr>
     </thead>
-    <tbody class="bg-white divide-y divide-gray-200" id="table-body">
+    <tbody class="bg-white divide-x divide-y divide-gray-200" id="table-body">
         @foreach ($regionData as $region)
-        <tr>
-            <td class="px-6 py-4 whitespace-nowrap">{{ $region->id }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ $region->name }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ $region->translations }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ $region->created_at }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ $region->updated_at }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ $region->flag }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ $region->wikiDataId }}</td>
+        <tr class=""  data-id="{{ $region->id }}">
+            <td class="text-xs text-center">{{ $region->id }}
+                <input type="hidden" name="id" value="{{ $region->id }}">
+            </td>
+            <td class="px-1 py-1"><input disabled type="text" name="name" value="{{ $region->name }}"></td>
+            <td class=""><input type="text" name="translations" value="{{ $region->translations }}" disabled></td>
+            <td class=""><input type="text" name="wikiDataId" value="{{ $region->wikiDataId }}" disabled></td>
+            @include('change-requests.partials.action-button')
         </tr>
         @endforeach
     </tbody>

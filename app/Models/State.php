@@ -34,9 +34,6 @@ class State extends Model
             'type' => 'Type',
             'latitude' => 'Latitude',
             'longitude' => 'Longitude',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
-            'flag' => 'Flag',
             'wikiDataId' => 'Wiki Data ID',
         ];
     }

@@ -10,6 +10,8 @@ use App\Models\Region;
 use App\Models\Subregion;
 use phpDocumentor\Reflection\Types\Nullable;
 
+use function Pest\Laravel\json;
+
 class ChangeRequestController extends Controller
 {
     public function changeRequest()
@@ -128,6 +130,4 @@ class ChangeRequestController extends Controller
         }
         return view('change-requests.partials.cities', ['cities' => $cities, 'cityHeaders' => $cityHeaders]);
     }
-
-    
 }
