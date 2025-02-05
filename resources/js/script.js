@@ -1,4 +1,4 @@
-import $ from "jquery";
+import $, { data } from "jquery";
 
 $(function () {
     // hide all tables and dropdowns initially
@@ -168,13 +168,34 @@ $(function () {
     // Event listener for the Delete button
     $(".delete-btn").on("click", function () {
         var row = $(this).closest("tr");
-        var regionId = row.data("id");
+        var Id = row.data("id");
 
         // Remove the row data from sessionStorage
-        sessionStorage.removeItem("region_" + regionId);
+        sessionStorage.removeItem("deleted_" + Id);
+        sessionStorage.setItem("deleted_" + Id, true);
+        row.addClass('deleted-row');
 
-        // Optionally, remove the row from the table
-        row.remove();
+        // hide the delete and edit buttons and show the undo button
+        $(this).hide();
+        row.find(".edit-btn").hide();
+        row.find(".undo-btn").show();
+    });
+
+    // Event listener for the Undo button
+    $(".undo-btn").on("click", function () {
+        var row = $(this).closest("tr");
+        var Id = row.data("id");
+
+        // Remove the row data from sessionStorage
+        sessionStorage.removeItem("deleted_" + Id);
+
+        // remove the deleted-row class
+        row.removeClass('deleted-row');
+
+        // hide the undo button and show the delete and edit buttons
+        $(this).hide();
+        row.find(".delete-btn").show();
+        row.find(".edit-btn").show();
     });
 
     //Load data from sessionStorage when the page is reloaded
@@ -187,6 +208,7 @@ $(function () {
                 if (key.startsWith(table + "_")) {
                     var id = key.split("_")[1];
                     var savedData = JSON.parse(sessionStorage.getItem(key));
+                    var deleted = sessionStorage.getItem("deleted_" + id);
                     var row = $(`tr[data-id=${table}_${id}]`);
 
                     // Populate the inputs with saved data
@@ -197,6 +219,5 @@ $(function () {
             });
         }
     }
-
     loadSavedData();
 });

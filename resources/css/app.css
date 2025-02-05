@@ -25,3 +25,15 @@
 .edit-btn {
     @apply rounded-md border border-slate-300 py-1 px-2 text-center text-sm transition-all shadow-sm hover:shadow-lg text-blue-600 hover:text-white hover:bg-blue-200 hover:border-blue-200 focus:text-white focus:bg-blue-200 focus:border-blue-200 active:border-blue-200 active:text-white active:bg-blue-200 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none
 }
+
+.deleted-row {
+    background-color: #fee2e2 !important; /* Light red background */
+    transition: background-color 0.3s ease;
+}
+.deleted-row td {
+    opacity: 0.8;
+}
+
+.undo-btn {
+   display: none;
+}
