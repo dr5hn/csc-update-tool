@@ -22,6 +22,9 @@ $(function () {
 
         var tabTitle = $("#" + tabId).text();
         $("#form-title").text("Database Changes Request - " + tabTitle);
+
+        // update session storage data
+        loadSavedData();
     }
 
     // Function to switch the tab
@@ -154,8 +157,8 @@ $(function () {
             rowData[$(this).attr("name")] = $(this).val();
         });
 
-        var regionId = row.find(".edit-btn").data("id");
-        sessionStorage.setItem("region_" + regionId, JSON.stringify(rowData));
+        var id = row.data("id");
+        sessionStorage.setItem(id, JSON.stringify(rowData));
 
         // Hide the Save button and show the Edit button again
         row.find(".edit-btn").removeClass("hidden");
@@ -165,7 +168,7 @@ $(function () {
     // Event listener for the Delete button
     $(".delete-btn").on("click", function () {
         var row = $(this).closest("tr");
-        var regionId = $(this).data("id");
+        var regionId = row.data("id");
 
         // Remove the row data from sessionStorage
         sessionStorage.removeItem("region_" + regionId);
@@ -175,38 +178,25 @@ $(function () {
     });
 
     //Load data from sessionStorage when the page is reloaded
+    function loadSavedData() {
+        for (var i = 0; i < sessionStorage.length; i++) {
+            var key = sessionStorage.key(i);
+            var tables = ["region", "subregion", "country", "state", "city"];
 
-    for (var i = 0; i < sessionStorage.length; i++) {
-        var key = sessionStorage.key(i);
-        var tables = ["region", "subregion", "countries", "states", "cities"];
+            tables.forEach((table) => {
+                if (key.startsWith(table + "_")) {
+                    var id = key.split("_")[1];
+                    var savedData = JSON.parse(sessionStorage.getItem(key));
+                    var row = $(`tr[data-id=${table}_${id}]`);
 
-        tables.forEach((table) => {
-            if (key.startsWith(table + "_")) {
-                var id = key.split("_")[1];
-                var savedData = JSON.parse(sessionStorage.getItem(key));
-                var row = $(`tr[data-id=${id}]`);
-
-                // Populate the inputs with saved data
-                $.each(savedData, function (name, value) {
-                    row.find('input[name="' + name + '"]').val(value);
-                });
-            }
-        });
+                    // Populate the inputs with saved data
+                    $.each(savedData, function (name, value) {
+                        row.find('input[name="' + name + '"]').val(value);
+                    });
+                }
+            });
+        }
     }
 
-    // $(".edit-btn").each(function () {
-    //     var regionId = $(this).data("id");
-    //     var savedData = JSON.parse(
-    //         sessionStorage.getItem("region_" + regionId)
-    //     );
-
-    //     if (savedData) {
-    //         var row = $(this).closest("tr");
-
-    //         // Populate the inputs with saved data
-    //         $.each(savedData, function (name, value) {
-    //             row.find('input[name="' + name + '"]').val(value);
-    //         });
-    //     }
-    // });
+    loadSavedData();
 });
