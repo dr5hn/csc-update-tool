@@ -130,6 +130,11 @@ $(function () {
         });
     });
 
+    // Add new row functionality
+    $("#add-row-btn").on("click", function () {
+        addNewRow();
+    });
+
     // Event listener for the Edit button
     $("body").on("click", ".edit-btn", function () {
         var row = $(this).closest("tr");
@@ -144,7 +149,8 @@ $(function () {
     });
 
     // Event listener for the Save button
-    $(".save-btn").on("click", function () {
+    // $(".save-btn").on("click", function () {
+    $("body").on("click", ".save-btn", function () {
         var row = $(this).closest("tr");
         var inputs = row.find("input");
 
@@ -158,6 +164,7 @@ $(function () {
         });
 
         var id = row.data("id");
+        // console.log(id);
         sessionStorage.setItem(id, JSON.stringify(rowData));
 
         // Hide the Save button and show the Edit button again
@@ -166,31 +173,34 @@ $(function () {
     });
 
     // Event listener for the Delete button
-    $(".delete-btn").on("click", function () {
+    // $(".delete-btn").on("click", function () {
+    $("body").on("click", ".delete-btn", function () {
         var row = $(this).closest("tr");
         var Id = row.data("id");
 
         // Remove the row data from sessionStorage
-        sessionStorage.removeItem("deleted_" + Id);
-        sessionStorage.setItem("deleted_" + Id, true);
-        row.addClass('deleted-row');
+        sessionStorage.removeItem("deleted-" + Id);
+        sessionStorage.setItem("deleted-" + Id, true);
+        row.addClass("deleted-row");
 
         // hide the delete and edit buttons and show the undo button
         $(this).hide();
         row.find(".edit-btn").hide();
         row.find(".undo-btn").show();
+        row.find(".save-btn").addClass("hidden");
     });
 
     // Event listener for the Undo button
-    $(".undo-btn").on("click", function () {
+    // $(".undo-btn").on("click", function () {
+    $("body").on("click", ".undo-btn", function () {
         var row = $(this).closest("tr");
         var Id = row.data("id");
 
         // Remove the row data from sessionStorage
-        sessionStorage.removeItem("deleted_" + Id);
+        sessionStorage.removeItem("deleted-" + Id);
 
         // remove the deleted-row class
-        row.removeClass('deleted-row');
+        row.removeClass("deleted-row");
 
         // hide the undo button and show the delete and edit buttons
         $(this).hide();
@@ -205,10 +215,10 @@ $(function () {
             var tables = ["region", "subregion", "country", "state", "city"];
 
             tables.forEach((table) => {
+                var savedData = JSON.parse(sessionStorage.getItem(key));
+
                 if (key.startsWith(table + "_")) {
                     var id = key.split("_")[1];
-                    var savedData = JSON.parse(sessionStorage.getItem(key));
-                    var deleted = sessionStorage.getItem("deleted_" + id);
                     var row = $(`tr[data-id=${table}_${id}]`);
 
                     // Populate the inputs with saved data
@@ -216,8 +226,111 @@ $(function () {
                         row.find('input[name="' + name + '"]').val(value);
                     });
                 }
+                if (key.startsWith("deleted-")) {
+                    console.log(key);
+                    var id = key.split("-")[1];
+                    var row = $(`tr[data-id=${id}]`);
+                    row.addClass("deleted-row");
+                    row.find(".delete-btn, .edit-btn").hide();
+                    row.find(".undo-btn").show();
+                }
+                if (key.startsWith("added-")) {
+                    var id = key.split("-")[1];
+                    var type = id.split("_")[0];
+                    var rowid = id.split("_")[1];
+                    console.log(id);
+                    let row = $(`tr[data-id=added-${id}]`);
+
+                    if (!row.length && table == type) {
+                        addNewRow(rowid);
+                        let row = $(`tr[data-id=added-${id}]`);
+                        console.log(row);
+                        if (row.length) {
+                            row.addClass("added-row");
+
+                            // Populate the inputs with saved data
+                            $.each(savedData, function (name, value) {
+                                row.find('input[name="' + name + '"]').val(
+                                    value
+                                );
+                            });
+                        }
+                    }
+                }
             });
         }
     }
     loadSavedData();
+
+    function addNewRow(newId = false) {
+        // Get the active table
+        const activeTable = $(".active-tab").attr("data-table");
+        const tableBody = $(activeTable).find("#table-body");
+
+        // Get the table type from the active tab ID
+        const tableType = $(".active-tab")
+            .attr("id")
+            .replace("-tab", "")
+            .replace("s", "");
+
+        if (!newId) {
+            // Find the highest existing ID
+            let maxId = 0;
+            tableBody.find("tr").each(function () {
+                const rowId = $(this).data("id");
+                if (rowId) {
+                    const id = parseInt(rowId.split("_")[1]);
+                    maxId = Math.max(maxId, id);
+                }
+            });
+
+            // Create new row ID
+            newId = maxId + 1;
+        }
+
+        // Create new row with empty inputs
+        const newRow = $("<tr>")
+            .addClass("")
+            .attr("data-id", `added-${tableType}_${newId}`);
+
+        // Add ID cell
+        newRow.append(`
+        <td class="text-xs text-center">${newId}
+            <input type="hidden" name="id" value="${newId}">
+        </td>
+    `);
+
+        // Add input fields based on table headers
+        const headers = $(activeTable).find("thead th");
+        headers.each(function (index) {
+            if (index > 0 && index < headers.length - 1) {
+                // Skip ID column and Actions column
+                newRow.append(`
+                <td class="px-1 py-1">
+                    <input type="text" name="${$(this)
+                        .text()
+                        .toLowerCase()
+                        .replace(/\s+/g, "_")}" value="" disabled>
+                </td>
+            `);
+            }
+        });
+
+        // Add action buttons
+        newRow.append(`
+        <td class="text-center">
+            <button class="edit-btn text-blue-500 hover:text-blue-700">Edit</button>
+            <button class="save-btn text-green-500 hover:text-green-700 hidden">Save</button>
+            <button class="delete-btn text-red-500 hover:text-red-700">Delete</button>
+            <button class="undo-btn text-gray-500 hover:text-gray-700 hidden">Undo</button>
+        </td>
+    `);
+
+        // Append the new row to the table
+        tableBody.append(newRow);
+
+        // Enable editing for the new row
+        const editBtn = newRow.find(".edit-btn");
+        editBtn.trigger("click");
+    }
 });
