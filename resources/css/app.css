@@ -37,3 +37,13 @@
 .undo-btn {
    display: none;
 }
+
+.added-row {
+    background-color: rgb(215, 243, 253);
+    transition: background-color 0.3s ease;
+}
+
+.changed-row {
+    background-color: rgb(250, 233, 202);
+    transition: background-color 0.3s ease;
+}

@@ -135,6 +135,40 @@ $(function () {
         addNewRow();
     });
 
+    function storeOriginalData() {
+        $("table tr").each(function () {
+            let rowData = {};
+            $(this)
+                .find("input")
+                .each(function () {
+                    rowData[$(this).attr("name")] = $(this).val();
+                });
+            $(this).data("original", rowData);
+        });
+    }
+
+    // Call on page load
+    storeOriginalData();
+
+    // Function to check if row data has changed
+    function hasRowChanged(row) {
+        const originalData = $(row).data("original");
+        if (!originalData) return false;
+
+        let changed = false;
+        $(row)
+            .find("input")
+            .each(function () {
+                const name = $(this).attr("name");
+                const currentValue = $(this).val();
+                if (originalData[name] !== currentValue) {
+                    changed = true;
+                    return false; // Break the loop
+                }
+            });
+        return changed;
+    }
+
     // Event listener for the Edit button
     $("body").on("click", ".edit-btn", function () {
         var row = $(this).closest("tr");
@@ -143,19 +177,33 @@ $(function () {
         // Enable the inputs to be editable
         inputs.prop("disabled", false);
 
+        inputs.on("input", function () {
+            if (hasRowChanged(row)) {
+                row.addClass("changed-row");
+            } else {
+                row.removeClass("changed-row");
+            }
+        });
+
         // Hide the Edit button and show the Save button
         $(this).addClass("hidden");
         row.find(".save-btn").removeClass("hidden");
     });
 
     // Event listener for the Save button
-    // $(".save-btn").on("click", function () {
     $("body").on("click", ".save-btn", function () {
         var row = $(this).closest("tr");
         var inputs = row.find("input");
+        var id = row.data("id");
+
+        // Only keep changed-row class if data actually changed
+        if (!hasRowChanged(row)) {
+            row.removeClass("changed-row");
+        }
 
         // Disable the inputs after saving
         inputs.prop("disabled", true);
+        inputs.off("input"); // Remove input handlers
 
         // Save data to sessionStorage
         var rowData = {};
@@ -163,9 +211,15 @@ $(function () {
             rowData[$(this).attr("name")] = $(this).val();
         });
 
-        var id = row.data("id");
-        // console.log(id);
-        sessionStorage.setItem(id, JSON.stringify(rowData));
+        // Don't mark new rows as changed
+        if (!id.startsWith("added-") && hasRowChanged(row)) {
+            sessionStorage.setItem(id, JSON.stringify(rowData));
+            row.addClass("changed-row");
+        }
+        
+        if (id.startsWith("added-")) {
+            sessionStorage.setItem(id, JSON.stringify(rowData));
+        }
 
         // Hide the Save button and show the Edit button again
         row.find(".edit-btn").removeClass("hidden");
@@ -173,10 +227,16 @@ $(function () {
     });
 
     // Event listener for the Delete button
-    // $(".delete-btn").on("click", function () {
     $("body").on("click", ".delete-btn", function () {
         var row = $(this).closest("tr");
         var Id = row.data("id");
+
+        // Check if this is a newly added row
+        if (Id.startsWith("added-")) {
+            // For new rows, simply remove the row from DOM
+            row.remove();
+            return;
+        }
 
         // Remove the row data from sessionStorage
         sessionStorage.removeItem("deleted-" + Id);
@@ -191,7 +251,6 @@ $(function () {
     });
 
     // Event listener for the Undo button
-    // $(".undo-btn").on("click", function () {
     $("body").on("click", ".undo-btn", function () {
         var row = $(this).closest("tr");
         var Id = row.data("id");
@@ -214,6 +273,15 @@ $(function () {
             var key = sessionStorage.key(i);
             var tables = ["region", "subregion", "country", "state", "city"];
 
+            // Handle edited rows
+            if (key.startsWith("changed-")) {
+                var rowId = key.replace("changed-", "");
+                var row = $(`tr[data-id="${rowId}"]`);
+                if (row.length) {
+                    row.addClass("changed-row");
+                }
+            }
+
             tables.forEach((table) => {
                 var savedData = JSON.parse(sessionStorage.getItem(key));
 
@@ -227,7 +295,6 @@ $(function () {
                     });
                 }
                 if (key.startsWith("deleted-")) {
-                    console.log(key);
                     var id = key.split("-")[1];
                     var row = $(`tr[data-id=${id}]`);
                     row.addClass("deleted-row");
@@ -238,13 +305,11 @@ $(function () {
                     var id = key.split("-")[1];
                     var type = id.split("_")[0];
                     var rowid = id.split("_")[1];
-                    console.log(id);
                     let row = $(`tr[data-id=added-${id}]`);
 
                     if (!row.length && table == type) {
                         addNewRow(rowid);
                         let row = $(`tr[data-id=added-${id}]`);
-                        console.log(row);
                         if (row.length) {
                             row.addClass("added-row");
 
@@ -327,10 +392,7 @@ $(function () {
     `);
 
         // Append the new row to the table
+        newRow.addClass("added-row");
         tableBody.append(newRow);
-
-        // Enable editing for the new row
-        const editBtn = newRow.find(".edit-btn");
-        editBtn.trigger("click");
     }
 });
