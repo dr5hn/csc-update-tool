@@ -9,6 +9,9 @@ use App\Models\City;
 use App\Models\Region;
 use App\Models\Subregion;
 use phpDocumentor\Reflection\Types\Nullable;
+use Illuminate\Support\Facades\Auth;
+use App\Models\ChangeRequest;
+
 
 use function Pest\Laravel\json;
 
@@ -129,5 +132,34 @@ class ChangeRequestController extends Controller
             $cities = City::with('state')->get();
         }
         return view('change-requests.partials.cities', ['cities' => $cities, 'cityHeaders' => $cityHeaders]);
+    }
+
+    public function changeRequestSave(Request $request)
+    {
+        try {
+            // Validate request
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'required|string',
+                'new_data' => 'required|json'
+            ]);
+
+            // Create new change request
+            $changeRequest = new ChangeRequest();
+            $changeRequest->user_id = Auth::id();
+            $changeRequest->title = $validated['title'];
+            $changeRequest->description = $validated['description'];
+            $changeRequest->new_data = $validated['new_data'];
+            $changeRequest->status = 'pending';
+            $changeRequest->save();
+
+            return redirect('dashboard');
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving change request: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

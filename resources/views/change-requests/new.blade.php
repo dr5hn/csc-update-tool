@@ -14,6 +14,22 @@
 
                         <h1 class="text-2xl font-bold text-gray-900 mb-6" id="form-title">Database Changes Request - Regions</h1>
 
+                        <!-- Request Details Form -->
+                        <div class="mb-8">
+                            <form action="" method="post" id="change-request-form">
+                                @csrf
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <input type="text" id="request_title" name="title" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Enter Title....">
+                                    </div>
+                                    <div>
+                                        <textarea id="request_description" name="description" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Enter Discriptions...."></textarea>
+                                        <input type="hidden" name="new_data" id="new_data">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
                         <!-- table tabs -->
                         <div class="flex border-b border-gray-200 mb-6" id="table-tabs">
                             <button type="button" class="py-2 px-4 font-medium border-transparent text-gray-500 hover:text-gray-700 active-tab" id="regions-tab" data-table="#regions-table">Regions</button>
@@ -91,7 +107,7 @@
                         </div>
 
                         <div class="flex justify-end mt-6">
-                            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                            <button type="submit" id="change-request-submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
                                 Submit Changes
                             </button>
                         </div>
