@@ -5,3 +5,23 @@
 .active-tab {
     @apply border-b-2 border-blue-500 text-blue-600;
 }
+
+
+#table-body {
+    input[type=text] {
+        border-color: #cdcdcd;
+        border-radius: 5px;
+        padding-top: 5px;
+        padding-right: 5px;
+        padding-bottom: 5px;
+        padding-left: 5px;
+        font-size: 13px;
+        line-height: unset;
+        --tw-shadow: 0 0 #0000;
+        width: 100%;
+    }
+}
+
+.edit-btn {
+    @apply rounded-md border border-slate-300 py-1 px-2 text-center text-sm transition-all shadow-sm hover:shadow-lg text-blue-600 hover:text-white hover:bg-blue-200 hover:border-blue-200 focus:text-white focus:bg-blue-200 focus:border-blue-200 active:border-blue-200 active:text-white active:bg-blue-200 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none
+}

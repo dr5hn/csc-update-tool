@@ -1,9 +1,10 @@
-<table class="min-w-full divide-y divide-gray-200" id="table">
+<table class="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-md" id="table">
     <thead class="bg-gray-50">
         <tr>
             @foreach ($stateHeaders as $header)
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $header }}</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 bg-gray-100 uppercase tracking-wider">{{ $header }}</th>
             @endforeach
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 bg-gray-100 uppercase tracking-wider">Actions</th>
         </tr>
     </thead>
     <tbody class="bg-white divide-y divide-gray-200" id="table-body">
@@ -18,10 +19,8 @@
             <td class="px-6 py-4 whitespace-nowrap">{{ $state->type }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ $state->latitude }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ $state->longitude }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ $state->created_at }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ $state->updated_at }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ $state->flag }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ $state->wikiDataId }}</td>
+            @include('change-requests.partials.action-button')
         </tr>
         @endforeach
     </tbody>

@@ -32,9 +32,6 @@ class City extends Model
             'country_code' => 'Country Code',
             'latitude' => 'Latitude',
             'longitude' => 'Longitude',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
-            'flag' => 'Flag',
             'wikiDataId' => 'Wiki Data ID',
         ];
     }

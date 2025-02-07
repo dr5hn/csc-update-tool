@@ -25,9 +25,6 @@ class Subregion extends Model
             'name' => 'Subregion Name',
             'translations' => 'Translations',
             'region_id' => 'Region ID',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
-            'flag' => 'Flag',
             'wikiDataId' => 'Wiki Data ID',
         ];
     }

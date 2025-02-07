@@ -62,9 +62,6 @@ class Country extends Model
             'longitude' => 'Longitude',
             'emoji' => 'Emoji',
             'emojiU' => 'Emoji Unicode',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
-            'flag' => 'Flag',
             'wikiDataId' => 'Wiki Data ID',
         ];
     } 
