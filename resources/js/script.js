@@ -169,6 +169,18 @@ $(function () {
         return changed;
     }
 
+    // Helper function to check if all inputs in a row are empty
+    function isRowEmpty(row) {
+        let isEmpty = true;
+        row.find('input[type="text"]').each(function() {
+            if ($(this).val().trim() !== '') {
+                isEmpty = false;
+                return false; // Break the loop
+            }
+        });
+        return isEmpty;
+    }
+
     // Event listener for the Edit button
     $("body").on("click", ".edit-btn", function () {
         var row = $(this).closest("tr");
@@ -205,6 +217,14 @@ $(function () {
         inputs.prop("disabled", true);
         inputs.off("input"); // Remove input handlers
 
+        // Check if this is a newly added row and all fields are empty
+        if (id.startsWith("added-") && isRowEmpty(row)) {
+            // Don't save empty rows to sessionStorage
+            row.find(".edit-btn").removeClass("hidden");
+            $(this).addClass("hidden");
+            return;
+        }
+
         // Save data to sessionStorage
         var rowData = {};
         inputs.each(function () {
@@ -217,8 +237,9 @@ $(function () {
             row.addClass("changed-row");
         }
         
-        if (id.startsWith("added-")) {
+        if (id.startsWith("added-") && !isRowEmpty(row)) {
             sessionStorage.setItem(id, JSON.stringify(rowData));
+            row.addClass("added-row");
         }
 
         // Hide the Save button and show the Edit button again
@@ -235,6 +256,7 @@ $(function () {
         if (Id.startsWith("added-")) {
             // For new rows, simply remove the row from DOM
             row.remove();
+            sessionStorage.removeItem(Id);
             return;
         }
 
