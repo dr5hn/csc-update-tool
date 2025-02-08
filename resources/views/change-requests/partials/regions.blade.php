@@ -9,13 +9,13 @@
     </thead>
     <tbody class="bg-white divide-x divide-y divide-gray-200" id="table-body">
         @foreach ($regionData as $region)
-        <tr class=""  data-id="{{ $region->id }}">
+        <tr class="" data-id="region_{{ $region->id }}">
             <td class="text-xs text-center">{{ $region->id }}
                 <input type="hidden" name="id" value="{{ $region->id }}">
             </td>
             <td class="px-1 py-1"><input disabled type="text" name="name" value="{{ $region->name }}"></td>
-            <td class=""><input type="text" name="translations" value="{{ $region->translations }}" disabled></td>
-            <td class=""><input type="text" name="wikiDataId" value="{{ $region->wikiDataId }}" disabled></td>
+            <td class="px-1 py-1"><input type="text" name="translations" value="{{ $region->translations }}" disabled></td>
+            <td class="px-1 py-1"><input type="text" name="wikiDataId" value="{{ $region->wikiDataId }}" disabled></td>
             @include('change-requests.partials.action-button')
         </tr>
         @endforeach
