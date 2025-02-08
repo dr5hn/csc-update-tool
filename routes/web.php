@@ -5,20 +5,26 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ChangeRequestController;
 
 Route::get('/', function () {
-    return view('welcome');
-});
-
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+    return redirect()->route('change-requests.index');
+})->name('home');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/change-requests/new', [ChangeRequestController::class, 'changeRequest'])->name('change-requests.new');
-    Route::post('/change-requests/new', [ChangeRequestController::class, 'changeRequestSave'])->name('change-requests.save');
+     // Change Request routes
+     Route::prefix('change-requests')->name('change-requests.')->group(function () {
+        Route::get('/', [ChangeRequestController::class, 'index'])->name('index');
+        Route::get('/new', [ChangeRequestController::class, 'changeRequest'])->name('new');
+        Route::get('/{changeRequest}', [ChangeRequestController::class, 'show'])->name('show');
+        Route::get('/{changeRequest}/edit', [ChangeRequestController::class, 'editDraft'])->name('edit');
+        Route::post('/draft', [ChangeRequestController::class, 'storeDraft'])->name('storeDraft');
+        Route::put('/{changeRequest}/draft', [ChangeRequestController::class, 'updateDraft'])->name('updateDraft');
+        Route::post('/', [ChangeRequestController::class, 'store'])->name('store');
+    });
+
+    // Partial Routes
     Route::get('/states', [ChangeRequestController::class, 'getStates'])->name('states');
     Route::get('/states-dropdown', [ChangeRequestController::class, 'getStatesDropdown'])->name('states-dropdown');
     Route::get('/cities-by-country', [ChangeRequestController::class, 'getCitiesByCountry'])->name('cities-by-country');
@@ -26,8 +32,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/countries', [ChangeRequestController::class, 'getCountries'])->name('countries');
     Route::get('/subregions', [ChangeRequestController::class, 'getSubregions'])->name('subregions');
     Route::get('/regions', [ChangeRequestController::class, 'getRegions'])->name('regions');
-    Route::post('/change-requests/draft', [ChangeRequestController::class, 'saveDraft'])->name('change-requests.draft');
-    Route::get('/change-requests/draft/{id}', [ChangeRequestController::class, 'getDraft'])->name('change-requests.getDraft');
 });
 
 require __DIR__.'/auth.php';

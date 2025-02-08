@@ -481,33 +481,27 @@ $(function () {
             return;
         }
 
-        const changes = {
-            modifications: {},
-            deletions: [],
-            additions: {}
-        };
+        const changes = collectChanges();
 
-        Array.from({ length: sessionStorage.length }, (_, i) => {
-            const key = sessionStorage.key(i);
-            const value = sessionStorage.getItem(key);
-
-            if (key.startsWith("deleted-")) {
-                changes.deletions.push(key.replace("deleted-", ""));
-            }
-            else if (key.startsWith("added-")) {
-                changes.additions[key] = JSON.parse(value);
-            }
-            else {
-                const [table] = key.split("_");
-                if (["region", "subregion", "country", "state", "city"].includes(table)) {
-                    changes.modifications[table] = changes.modifications[table] || {};
-                    changes.modifications[table][key] = JSON.parse(value);
-                }
+        $.ajax({
+            url: '/change-requests/draft',
+            method: 'POST',
+            data: {
+                title: title,
+                description: description,
+                new_data: JSON.stringify(changes),
+                _token: $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                // Clear session storage
+                sessionStorage.clear();
+                // Redirect to the change requests list
+                window.location.href = response.redirect;
+            },
+            error: function(error) {
+                alert('Error saving draft: ' + error.responseJSON.message);
             }
         });
-
-        $("#new_data").val(JSON.stringify(changes));
-        $("#change-request-form").trigger("submit");
     });
 
     // Add these new functions
@@ -665,6 +659,8 @@ $(function () {
         window.dispatchEvent(new CustomEvent('open-modal', { detail: 'confirm-submit-modal' }));
     });
     $("#final-submit-btn").on("click", function() {
+        // Clear session storage before submitting
+        // sessionStorage.clear();
         $("#change-request-form").trigger("submit");
     });
 

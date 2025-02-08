@@ -27,9 +27,8 @@
             <td class="px-1 py-1"><input type="text" name="subregion" value="{{ $country->subregion }}" disabled></td>
             <td class="px-1 py-1"><input type="text" name="subregion_id" value="{{ $country->subregion_id }}" disabled></td>
             <td class="px-1 py-1"><input type="text" name="nationality" value="{{ $country->nationality }}" disabled></td>
-            <td class="px-1 py-1"><input type="text" name="timezones" value="{{ $country->timezones }}" disabled></td>
-            <td class="px-1 py-1"><input type="text" name="translations" value="
-                                    {{ $country->translations }}" disabled></td>
+            <td class="px-1 py-1"><input type="text" name="timezones" value="{{ is_array($country->timezones) ? json_encode($country->timezones) : $country->timezones }}" disabled></td>
+            <td class="px-1 py-1"><input type="text" name="translations" value="{{ is_array($country->translations) ? json_encode($country->translations) : $country->translations }}" disabled></td>
             <td class="px-1 py-1"><input type="text" name="latitude" value="{{ $country->latitude }}" disabled></td>
             <td class="px-1 py-1"><input type="text" name="longitude" value="{{ $country->longitude }}" disabled></td>
             <td class="px-1 py-1"><input type="text" name="emoji" value="{{ $country->emoji }}" disabled></td>
