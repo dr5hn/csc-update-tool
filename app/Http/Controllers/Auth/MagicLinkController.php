@@ -47,14 +47,14 @@ class MagicLinkController extends Controller
         return back()->with('status', 'We have emailed you a magic link!');
     }
 
-    public function verify(Request $request): RedirectResponse
+    public function verify(string $token): RedirectResponse
     {
-        $magicLink = MagicLink::where('token', $request->token)
+        $magicLink = MagicLink::where('token', $token)
             ->whereNull('used_at')
             ->firstOrFail();
 
         $data = decrypt($magicLink->payload);
-        
+
         $user = User::firstOrCreate(
             ['email' => $data['email']],
             ['name' => $data['email']]
@@ -62,8 +62,8 @@ class MagicLinkController extends Controller
 
         $magicLink->update(['used_at' => now()]);
         Auth::login($user);
-        
-        return redirect()->route('dashboard');
+
+        return redirect()->route('change-requests.index');
     }
 
     public function destroy(Request $request): RedirectResponse

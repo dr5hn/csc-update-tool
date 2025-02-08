@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Country extends Model
 {
     protected $fillable = [
-        'id',
         'name',
         'iso3',
         'numeric_code',
@@ -19,9 +20,7 @@ class Country extends Model
         'currency_symbol',
         'tld',
         'native',
-        'region',
         'region_id',
-        'subregion',
         'subregion_id',
         'nationality',
         'timezones',
@@ -30,62 +29,61 @@ class Country extends Model
         'longitude',
         'emoji',
         'emojiU',
-        'created_at',
-        'updated_at',
-        'flag',
-        'wikiDataId',
+        'wikiDataId'
     ];
 
-   public static function getTableHeaders()
-    {
-        return [
-            'id' => 'ID',
-            'name' => 'Country Name',
-            'iso3' => 'ISO 3',
-            'numeric_code' => 'Numeric Code',
-            'iso2' => 'ISO 2',
-            'phonecode' => 'Phone Code',
-            'capital' => 'Capital',
-            'currency' => 'Currency',
-            'currency_name' => 'Currency Name',
-            'currency_symbol' => 'Currency Symbol',
-            'tld' => 'TLD',
-            'native' => 'Native',
-            'region' => 'Region',
-            'region_id' => 'Region ID',
-            'subregion' => 'Subregion',
-            'subregion_id' => 'Subregion ID',
-            'nationality' => 'Nationality',
-            'timezones' => 'Timezones',
-            'translations' => 'Translations',
-            'latitude' => 'Latitude',
-            'longitude' => 'Longitude',
-            'emoji' => 'Emoji',
-            'emojiU' => 'Emoji Unicode',
-            'wikiDataId' => 'Wiki Data ID',
-        ];
-    } 
+    protected $casts = [
+        'timezones' => 'array',
+        'translations' => 'array'
+    ];
 
-    public static function getTableData()
-    {
-        return self::all();
-    }
-
-    // A country belongs to a subregion
-    public function subregion()
+    public function subregion(): BelongsTo
     {
         return $this->belongsTo(Subregion::class);
     }
 
-    // A country belongs to a region through subregion
-    public function region()
-    {
-        return $this->belongsTo(Region::class)->through('subregion');
-    }
-
-    // A country has many states
-    public function states()
+    public function states(): HasMany
     {
         return $this->hasMany(State::class);
+    }
+
+    public function cities(): HasMany
+    {
+        return $this->hasMany(City::class);
+    }
+
+    public static function getTableHeaders(): array
+    {
+        return [
+            'ID',
+            'Name',
+            'ISO3',
+            'Numeric Code',
+            'ISO2',
+            'Phone Code',
+            'Capital',
+            'Currency',
+            'Currency Name',
+            'Currency Symbol',
+            'TLD',
+            'Native',
+            'Region',
+            'Region ID',
+            'Subregion',
+            'Subregion ID',
+            'Nationality',
+            'Timezones',
+            'Translations',
+            'Latitude',
+            'Longitude',
+            'Emoji',
+            'EmojiU',
+            'Wiki Data ID'
+        ];
+    }
+
+    public static function getTableData()
+    {
+        return self::with(['subregion.region'])->get();
     }
 }

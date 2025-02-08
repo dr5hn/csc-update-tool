@@ -1,66 +1,137 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# CSC Update Tool
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+![Laravel](https://img.shields.io/badge/laravel-%23FF2D20.svg?style=for-the-badge&logo=laravel&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
 
-## About Laravel
+The CSC Update Tool is a Laravel-based application designed to manage and track database change requests. It provides a structured workflow for submitting, reviewing, and implementing changes to database records.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **User Authentication**
+  - Role-based access control (User, Moderator, Admin)
+  - Email verification
+  - Password reset functionality
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Change Request Management**
+  - Create, view, and track change requests
+  - Commenting system for requests
+  - File attachments for supporting documents
+  - Search and filter functionality
 
-## Learning Laravel
+- **Data Management**
+  - Paginated data viewing
+  - Data validation and backup
+  - Audit logging and change history tracking
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- **Performance Optimization**
+  - Fast page load times (< 2 seconds)
+  - Lazy loading for large datasets
+  - Caching for frequently accessed data
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## Technology Stack
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **Backend**: Laravel 11
+- **Frontend**: Tailwind CSS, Alpine.js
+- **Database**: MySQL
+- **Caching**: Redis
+- **Queue**: Database
+- **Authentication**: Magic Link, Github
 
-## Laravel Sponsors
+## Installation
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+1. Clone the repository:
+```bash
+git clone https://github.com/dr5hn/csc-update-tool.git
+cd csc-update-tool
+```
 
-### Premium Partners
+2. Install dependencies:
+```bash
+composer install
+npm install
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+3. Configure environment variables:
+```bash
+cp .env.example .env
+```
+
+4. Generate application key:
+```bash
+php artisan key:generate
+```
+
+5. Run migrations:
+```bash
+php artisan migrate
+```
+
+6. Configure environment variables:
+```bash
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=csc-update-tool
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+7. Run the development server:
+```bash
+npm run dev
+php artisan serve
+```
+
+## Configuration
+
+Key configuration files:
+- `config/change-request.php` - Change request settings
+- `config/services.php` - Third-party service credentials
+- `tailwind.config.js` - Tailwind CSS configuration
+
+Environment variables:
+- `APP_NAME` - Application name
+- `MAIL_*` - Email configuration
+- `GITHUB_CLIENT_ID` - GitHub OAuth credentials
+- `REDIS_*` - Redis connection settings
+
+## API Endpoints
+
+### Authentication
+```plaintext
+POST /api/auth/login
+POST /api/auth/register
+POST /api/auth/logout
+POST /api/auth/reset-password
+```
+
+### Change Requests
+```plaintext
+GET /api/change-requests
+POST /api/change-requests
+GET /api/change-requests/{id}
+PUT /api/change-requests/{id}
+DELETE /api/change-requests/{id}
+```
 
 ## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a pull request
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is open-source and available under the [MIT License](LICENSE).
+
+## Security Vulnerabilities
+
+If you discover a security vulnerability, please raise an issue. All security vulnerabilities will be promptly addressed.
+
+## Credits
+
+- [Laravel](https://laravel.com)
+- [Tailwind CSS](https://tailwindcss.com)
+- [Mailtrap](https://mailtrap.io) for email testing

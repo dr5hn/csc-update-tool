@@ -3,44 +3,54 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Region extends Model
 {
     protected $fillable = [
-        'id',
         'name',
         'translations',
-        'created_at',
-        'updated_at',
-        'flag',
-        'wikiDataId',
+        'wikiDataId'
     ];
 
-    public static function getTableHeaders()
+    protected $casts = [
+        'translations' => 'array'
+    ];
+
+    public function getTranslationsAttribute($value)
+    {
+        if (is_string($value)) {
+            return json_decode($value, true) ?? [];
+        }
+        return $value ?? [];
+    }
+
+    public function setTranslationsAttribute($value)
+    {
+        if (is_string($value)) {
+            $this->attributes['translations'] = $value;
+        } else {
+            $this->attributes['translations'] = json_encode($value);
+        }
+    }
+
+    public function subregions(): HasMany
+    {
+        return $this->hasMany(Subregion::class);
+    }
+
+    public static function getTableHeaders(): array
     {
         return [
-            'id' => 'ID',
-            'name' => 'Region Name',
-            'translations' => 'Translations',
-            'wikiDataId' => 'Wiki Data ID',
+            'ID',
+            'Name',
+            'Translations',
+            'Wiki Data ID'
         ];
     }
 
     public static function getTableData()
     {
-        return self::all();
-    }
-
-    // A region has many subregions
-    public function subregions()
-    {
-        return $this->hasMany(Subregion::class);
-    }
-
-    // A region has many countries through subregions
-    public function countries()
-    {
-        return $this->hasManyThrough(Country::class, Subregion::class);
+        return self::get();
     }
 }
-
