@@ -3,44 +3,62 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Subregion extends Model
 {
-
     protected $fillable = [
-        'id',
         'name',
         'translations',
         'region_id',
-        'created_at',
-        'updated_at',
-        'flag',
-        'wikiDataId',
+        'wikiDataId'
     ];
 
-    public static function getTableHeaders()
+    protected $casts = [
+        'translations' => 'array'
+    ];
+
+    public function getTranslationsAttribute($value)
+    {
+        if (is_string($value)) {
+            return json_decode($value, true) ?? [];
+        }
+        return $value ?? [];
+    }
+
+    public function setTranslationsAttribute($value)
+    {
+        if (is_string($value)) {
+            $this->attributes['translations'] = $value;
+        } else {
+            $this->attributes['translations'] = json_encode($value);
+        }
+    }
+
+    public function region(): BelongsTo
+    {
+        return $this->belongsTo(Region::class);
+    }
+
+    public function countries(): HasMany
+    {
+        return $this->hasMany(Country::class);
+    }
+
+    public static function getTableHeaders(): array
     {
         return [
-            'id' => 'ID',
-            'name' => 'Subregion Name',
-            'translations' => 'Translations',
-            'region_id' => 'Region ID',
-            'wikiDataId' => 'Wiki Data ID',
+            'ID',
+            'Name',
+            'Translations',
+            'Region ID',
+            'Wiki Data ID'
         ];
     }
 
     public static function getTableData()
     {
-        return self::all();
-    }
-
-    public function region()
-    {
-        return $this->belongsTo(Region::class);
-    }
-
-    public function countries()
-    {
-        return $this->hasMany(Country::class);
+        return self::with('region')->get();
     }
 }

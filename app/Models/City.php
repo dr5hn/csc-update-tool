@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class City extends Model
 {
     protected $fillable = [
-        'id',
         'name',
         'state_id',
         'state_code',
@@ -15,54 +15,48 @@ class City extends Model
         'country_code',
         'latitude',
         'longitude',
-        'created_at',
-        'updated_at',
-        'flag',
-        'wikiDataId',
+        'wikiDataId'
     ];
 
-    public static function getTableHeaders()
+    /**
+     * Get the state that owns the city
+     */
+    public function state(): BelongsTo
+    {
+        return $this->belongsTo(State::class);
+    }
+
+    /**
+     * Get the country that owns the city
+     */
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class);
+    }
+
+    /**
+     * Get table headers for display
+     */
+    public static function getTableHeaders(): array
     {
         return [
-            'id' => 'ID',
-            'name' => 'City Name',
-            'state_id' => 'State ID',
-            'state_code' => 'State Code',
-            'country_id' => 'Country ID',
-            'country_code' => 'Country Code',
-            'latitude' => 'Latitude',
-            'longitude' => 'Longitude',
-            'wikiDataId' => 'Wiki Data ID',
+            'ID',
+            'City Name',
+            'State ID',
+            'State Code',
+            'Country ID',
+            'Country Code',
+            'Latitude',
+            'Longitude',
+            'Wiki Data ID'
         ];
     }
 
+    /**
+     * Get table data for display
+     */
     public static function getTableData()
     {
-        return self::with('state')->limit(10)->get();
+        return self::with(['state', 'country'])->get();
     }
-
-     // A city belongs to a state
-     public function state()
-     {
-         return $this->belongsTo(State::class);
-     }
- 
-     // Get country through state
-     public function country()
-     {
-         return $this->belongsTo(Country::class)->through('state');
-     }
- 
-     // Get subregion through state and country
-     public function subregion()
-     {
-         return $this->belongsTo(Subregion::class)->through('state.country');
-     }
- 
-     // Get region through state, country, and subregion
-     public function region()
-     {
-         return $this->belongsTo(Region::class)->through('state.country.subregion');
-     }
 }
-

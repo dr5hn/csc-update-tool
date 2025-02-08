@@ -13,10 +13,20 @@
             <td class="text-xs text-center">{{ $subregion->id }}
                 <input type="hidden" name="id" value="{{ $subregion->id }}">
             </td>
-            <td class="px-1 py-1 "><input type="text" name="name" value="{{ $subregion->name }}" disabled></td>
-            <td class="px-1 py-1 "><input type="text" name="translations" value="{{ $subregion->translations }}" disabled></td>
-            <td class="px-1 py-1 "><input type="text" name="region_id" value="{{ $subregion->region_id }}" disabled></td>
-            <td class="px-1 py-1 "><input type="text" name="wikiDataId" value="{{ $subregion->wikiDataId }}" disabled></td>
+            <td class="px-1 py-1">
+                <input type="text" name="name" value="{{ $subregion->name }}" disabled>
+            </td>
+            <td class="px-1 py-1">
+                <input type="text" name="translations"
+                       value="{{ is_array($subregion->translations) ? json_encode($subregion->translations) : $subregion->translations }}"
+                       disabled>
+            </td>
+            <td class="px-1 py-1">
+                <input type="text" name="region_id" value="{{ $subregion->region_id }}" disabled>
+            </td>
+            <td class="px-1 py-1">
+                <input type="text" name="wikiDataId" value="{{ $subregion->wikiDataId ?? '' }}" disabled>
+            </td>
             @include('change-requests.partials.action-button')
         </tr>
         @endforeach

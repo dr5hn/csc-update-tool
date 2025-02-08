@@ -8,7 +8,7 @@
         </tr>
     </thead>
     <tbody class="bg-white divide-x divide-y divide-gray-200" id="table-body">
-        @foreach ($cities as $city)
+        @foreach ($cityData as $city)
         <tr class="" data-id="city_{{ $city->id }}">
             <td class="text-xs text-center">{{ $city->id }} <input type="hidden" name="id" value="{{ $city->id }}"></td>
             <td class="px-1 py-1"><input type="text" name="name" value="{{ $city->name }}" disabled></td>

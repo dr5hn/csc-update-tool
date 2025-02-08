@@ -8,7 +8,7 @@
         </tr>
     </thead>
     <tbody class="bg-white divide-x divide-y divide-gray-200" id="table-body">
-        @foreach ($states as $state)
+        @foreach ($stateData as $state)
         <tr class="" data-id="state_{{ $state->id }}">
             <td class="text-xs text-center">{{ $state->id }} <input type="hidden" name="id" value="{{ $state->id }}"></td>
             <td class="px-1 py-1"><input type="text" name="name" value="{{ $state->name }}" disabled></td>
