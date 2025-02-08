@@ -292,4 +292,54 @@ class ChangeRequestController extends Controller
             ], 500);
         }
     }
+
+    public function saveDraft(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'required|string',
+                'new_data' => 'required|json'
+            ]);
+
+            $changeRequest = ChangeRequest::create([
+                'user_id' => Auth::id(),
+                'title' => $validated['title'],
+                'description' => $validated['description'],
+                'new_data' => $validated['new_data'],
+                'status' => 'draft'
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Draft saved successfully',
+                'id' => $changeRequest->id
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving draft: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getDraft($id): JsonResponse
+    {
+        try {
+            $draft = ChangeRequest::where('user_id', Auth::id())
+                ->where('id', $id)
+                ->where('status', 'draft')
+                ->firstOrFail();
+
+            return response()->json([
+                'success' => true,
+                'draft' => $draft
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching draft: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

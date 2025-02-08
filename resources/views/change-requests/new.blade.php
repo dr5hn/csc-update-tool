@@ -23,7 +23,7 @@
                                 <div>
                                     <textarea id="request_description" name="description" rows="3"
                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                        placeholder="Enter Discriptions...."></textarea>
+                                        placeholder="Enter Description...."></textarea>
                                     <input type="hidden" name="new_data" id="new_data">
                                 </div>
                             </div>
@@ -135,7 +135,15 @@
                             Add New Row</button>
                     </div>
 
-                    <div class="flex justify-end mt-6">
+                    <div class="flex justify-end mt-6 space-x-3">
+                        <button type="button" id="save-draft-btn"
+                            class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600">
+                            Save Draft
+                        </button>
+                        <button type="button" id="review-changes-btn"
+                            class="bg-yellow-500 text-white px-6 py-2 rounded-lg hover:bg-yellow-600">
+                            Review Changes
+                        </button>
                         <button type="submit" id="change-request-submit"
                             class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
                             Submit Changes
@@ -145,4 +153,7 @@
             </div>
         </div>
     </div>
+
+    <!-- Include the modals -->
+    @include('change-requests.partials.review-changes-modal')
 </x-app-layout>

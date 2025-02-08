@@ -26,6 +26,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/countries', [ChangeRequestController::class, 'getCountries'])->name('countries');
     Route::get('/subregions', [ChangeRequestController::class, 'getSubregions'])->name('subregions');
     Route::get('/regions', [ChangeRequestController::class, 'getRegions'])->name('regions');
+    Route::post('/change-requests/draft', [ChangeRequestController::class, 'saveDraft'])->name('change-requests.draft');
+    Route::get('/change-requests/draft/{id}', [ChangeRequestController::class, 'getDraft'])->name('change-requests.getDraft');
 });
 
 require __DIR__.'/auth.php';
