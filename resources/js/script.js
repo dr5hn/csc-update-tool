@@ -172,8 +172,8 @@ $(function () {
     // Helper function to check if all inputs in a row are empty
     function isRowEmpty(row) {
         let isEmpty = true;
-        row.find('input[type="text"]').each(function() {
-            if ($(this).val().trim() !== '') {
+        row.find('input[type="text"]').each(function () {
+            if ($(this).val().trim() !== "") {
                 isEmpty = false;
                 return false; // Break the loop
             }
@@ -236,7 +236,7 @@ $(function () {
             sessionStorage.setItem(id, JSON.stringify(rowData));
             row.addClass("changed-row");
         }
-        
+
         if (id.startsWith("added-") && !isRowEmpty(row)) {
             sessionStorage.setItem(id, JSON.stringify(rowData));
             row.addClass("added-row");
@@ -417,4 +417,63 @@ $(function () {
         newRow.addClass("added-row");
         tableBody.append(newRow);
     }
+
+    // Submit button click handler
+    $("#change-request-submit").on("click", function (e) {
+        e.preventDefault();
+
+        // Validate form
+        const title = $("#request_title").val();
+        const description = $("#request_description").val();
+
+        if (!title || !description) {
+            alert("Please fill in both title and description");
+            return;
+        }
+
+        // Collect data from sessionStorage
+        const changes = {
+            modifications: {},
+            deletions: [],
+            additions: {},
+        };
+
+        // Go through sessionStorage
+        for (let i = 0; i < sessionStorage.length; i++) {
+            const key = sessionStorage.key(i);
+
+            // Handle deleted items
+            if (key.startsWith("deleted-")) {
+                const id = key.replace("deleted-", "");
+                changes.deletions.push(id);
+                continue;
+            }
+
+            // Handle added items
+            if (key.startsWith("added-")) {
+                const data = JSON.parse(sessionStorage.getItem(key));
+                if (!changes.additions[key]) {
+                    changes.additions[key] = data;
+                }
+                continue;
+            }
+
+            // Handle modified items
+            const tables = ["region", "subregion", "country", "state", "city"];
+            tables.forEach((table) => {
+                if (key.startsWith(table + "_")) {
+                    if (!changes.modifications[table]) {
+                        changes.modifications[table] = {};
+                    }
+                    changes.modifications[table][key] = JSON.parse(
+                        sessionStorage.getItem(key)
+                    );
+                }
+            });
+        }
+
+        $("#new_data").val(JSON.stringify(changes));
+
+        $("#change-request-form").trigger("submit");
+    });
 });
