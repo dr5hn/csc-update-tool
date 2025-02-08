@@ -88,22 +88,39 @@ $(function () {
         const activeTab = $(".active-tab").attr("id").replace("-tab", "");
         const params = new URLSearchParams({ search: searchText });
 
+        // Store all added rows before filtering
+        const $addedRows = $(`tr[data-id^="added-"]`).detach();
+        console.log($addedRows);
+
         switch(activeTab) {
             case "regions":
-                $tables.regions.load(`/regions?${params}`, storeOriginalData);
+                $tables.regions.load(`/regions?${params}`, function() {
+                    storeOriginalData();
+                    // Reattach added rows after loading
+                    $tables.regions.find("#table-body").append($addedRows);
+                });
                 break;
             case "subregions":
-                $tables.subregions.load(`/subregions?${params}`, storeOriginalData);
+                $tables.subregions.load(`/subregions?${params}`, function() {
+                    storeOriginalData();
+                    $tables.subregions.find("#table-body").append($addedRows);
+                });
                 break;
             case "countries":
-                $tables.countries.load(`/countries?${params}`, storeOriginalData);
+                $tables.countries.load(`/countries?${params}`, function() {
+                    storeOriginalData();
+                    $tables.countries.find("#table-body").append($addedRows);
+                });
                 break;
             case "states": {
                 const countryId = $("#countries-select").val();
                 if (countryId) {
                     params.append("country_id", countryId);
                 }
-                $tables.states.load(`/states?${params}`, storeOriginalData);
+                $tables.states.load(`/states?${params}`, function() {
+                    storeOriginalData();
+                    $tables.states.find("#table-body").append($addedRows);
+                });
                 break;
             }
             case "cities": {
@@ -111,9 +128,15 @@ $(function () {
                 const stateId = $("#states-select").val();
 
                 if (stateId) {
-                    $tables.cities.load(`/cities-by-state?state_id=${stateId}&${params}`, storeOriginalData);
+                    $tables.cities.load(`/cities-by-state?state_id=${stateId}&${params}`, function() {
+                        storeOriginalData();
+                        $tables.cities.find("#table-body").append($addedRows);
+                    });
                 } else if (countryId) {
-                    $tables.cities.load(`/cities-by-country?country_id=${countryId}&${params}`, storeOriginalData);
+                    $tables.cities.load(`/cities-by-country?country_id=${countryId}&${params}`, function() {
+                        storeOriginalData();
+                        $tables.cities.find("#table-body").append($addedRows);
+                    });
                 }
                 break;
             }
@@ -167,10 +190,14 @@ $(function () {
 
         storeOriginal(row) {
             const $row = $(row);
-            const rowData = {};
             const id = $row.data("id");
 
-            // Store all input values, including hidden ones
+            // Skip if row is added, deleted or changed
+            if (id.startsWith("added-") || $row.hasClass("deleted-row") || $row.hasClass("changed-row")) {
+                return;
+            }
+
+            const rowData = {};
             $row.find("input").each(function() {
                 const $input = $(this);
                 const name = $input.attr("name");
@@ -314,15 +341,25 @@ $(function () {
                     const $existingRow = $(`tr[data-id="${id}"]`);
 
                     if (!$existingRow.length && table === key.split("-")[1].split("_")[0]) {
-                        const rowId = key.split("_")[1];
-                        addNewRow(rowId);
-                        const $newRow = $(`tr[data-id="${id}"]`);
+                        const tableTypeMap = {
+                            city: 'cities',
+                            country: 'countries',
+                            state: 'states',
+                            subregion: 'subregions',
+                            region: 'regions'
+                        };
+                        const tabId = `${tableTypeMap[table]}-tab`;
+                        if ($(`#${tabId}`).hasClass("active-tab")) {
+                            const rowId = key.split("_")[1];
+                            addNewRow(rowId);
+                            const $newRow = $(`tr[data-id="${id}"]`);
 
-                        if ($newRow.length) {
-                            $newRow.addClass("added-row");
-                            Object.entries(JSON.parse(value)).forEach(([name, value]) => {
-                                $newRow.find(`input[name="${name}"]`).val(value);
-                            });
+                            if ($newRow.length) {
+                                $newRow.addClass("added-row");
+                                Object.entries(JSON.parse(value)).forEach(([name, value]) => {
+                                    $newRow.find(`input[name="${name}"]`).val(value);
+                                });
+                            }
                         }
                     }
                 }
@@ -334,24 +371,20 @@ $(function () {
     function addNewRow(newId = false) {
         const activeTable = $(".active-tab").attr("data-table");
         const $tableBody = $(activeTable).find("#table-body");
-        let tableType = $(".active-tab").attr("id").replace("-tab", "").replace("s", "");
-        if (tableType === "cities") {
-            tableType = "city";
-        }
-        if (tableType === "countries") {
-            tableType = "country";
-        }
+        let tableType = $(".active-tab").attr("id").replace("-tab", "");
+        const tableTypeMap = {
+            cities: 'city',
+            countries: 'country',
+            states: 'state',
+            subregions: 'subregion',
+            regions: 'region'
+        };
+        tableType = tableTypeMap[tableType] || tableType;
 
         if (!newId) {
-            let maxId = 0;
-            $tableBody.find("tr").each(function() {
-                const rowId = $(this).data("id");
-                if (rowId) {
-                    const id = parseInt(rowId.split("_")[1]);
-                    maxId = Math.max(maxId, id);
-                }
-            });
-            newId = maxId + 1;
+            // Generate a random 8-digit number
+            const randomId = Math.floor(1000000 + Math.random() * 9000000);
+            newId = `${randomId}`;
         }
 
         const $newRow = $("<tr>")
@@ -519,25 +552,27 @@ $(function () {
                 Object.entries(rows).forEach(([id, data]) => {
                     const $row = $('<tr>');
 
-                    // Add header cells (removed ID)
+                    // Add header cells with ID column
                     $row.append(`
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Table</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">ID</th>
                     `);
                     Object.keys(data).forEach(field => {
-                        if (field !== 'id') { // Skip ID field
+                        if (field !== 'id') {
                             $row.append(`
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">${field}</th>
                             `);
                         }
                     });
 
-                    // Add data row (removed ID)
+                    // Add data row with ID column
                     const $dataRow = $('<tr>');
                     $dataRow.append(`
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${table}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${id.split('_')[1]}</td>
                     `);
                     Object.entries(data).forEach(([field, value]) => {
-                        if (field !== 'id') { // Skip ID field
+                        if (field !== 'id') {
                             const originalValue = RowManager.getOriginalValue(id, field);
                             if (originalValue !== value) {
                                 $dataRow.append(`
@@ -559,31 +594,33 @@ $(function () {
             });
         }
 
-        // Populate additions (removed ID)
+        // Populate additions with ID column
         if (Object.keys(changes.additions).length) {
             Object.entries(changes.additions).forEach(([key, data]) => {
                 const [_, table] = key.split('-');
                 const $row = $('<tr>');
 
-                // Add header cells
+                // Add header cells with ID column
                 $row.append(`
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Table</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">ID</th>
                 `);
                 Object.keys(data).forEach(field => {
-                    if (field !== 'id') { // Skip ID field
+                    if (field !== 'id') {
                         $row.append(`
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">${field}</th>
                         `);
                     }
                 });
 
-                // Add data row
+                // Add data row with ID column
                 const $dataRow = $('<tr>');
                 $dataRow.append(`
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${table}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${key.split('_')[1]}</td>
                 `);
                 Object.entries(data).forEach(([field, value]) => {
-                    if (field !== 'id') { // Skip ID field
+                    if (field !== 'id') {
                         $dataRow.append(`
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-green-500">${value || ''}</td>
                         `);
@@ -594,20 +631,22 @@ $(function () {
             });
         }
 
-        // Populate deletions (show only table and name)
+        // Populate deletions with ID column
         if (changes.deletions.length) {
             const $row = $('<tr>');
             $row.append(`
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Table</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">ID</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Name</th>
             `);
 
             changes.deletions.forEach(key => {
-                const [table] = key.split('_');
+                const [table, id] = key.split('_');
                 const name = $(`tr[data-id="${key}"]`).find('input[name="name"]').val();
                 const $dataRow = $('<tr>');
                 $dataRow.append(`
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${table}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${id}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-red-500">${name}</td>
                 `);
                 $('#deletions-table-body').append($row, $dataRow);
