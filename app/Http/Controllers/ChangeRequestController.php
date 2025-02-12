@@ -200,17 +200,24 @@ class ChangeRequestController extends Controller
     }
 
     /**
-     * Store a draft change request.
+     * Store or update a draft change request.
      */
     public function storeDraft(Request $request): JsonResponse
     {
         try {
             $validated = $request->validate([
+                'id' => 'sometimes|exists:change_requests,id',
                 'title' => 'required|string|max:255',
                 'description' => 'required|string',
                 'new_data' => 'required|json'
             ]);
 
+            // If ID exists, update existing draft
+            if (!empty($validated['id'])) {
+                return $this->updateDraft($request, $validated['id']);
+            }
+
+            // Create new draft
             $changeRequest = ChangeRequest::create([
                 'user_id' => Auth::id(),
                 'title' => $validated['title'],
@@ -221,7 +228,8 @@ class ChangeRequestController extends Controller
 
             return response()->json([
                 'message' => 'Draft saved successfully',
-                'redirect' => route('change-requests.index')
+                'redirect' => route('change-requests.index'),
+                'draft_id' => $changeRequest->id
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -231,18 +239,68 @@ class ChangeRequestController extends Controller
     }
 
     /**
+     * Protected method to update existing draft
+     */
+    protected function updateDraft(Request $request, int $id): JsonResponse
+    {
+        try {
+            // Find the draft and verify ownership
+            $draft = ChangeRequest::where('id', $id)
+                ->where('user_id', Auth::id())
+                ->first();
+
+            if (!$draft) {
+                return response()->json([
+                    'message' => 'Draft not found or unauthorized'
+                ], 404);
+            }
+
+            // Verify draft status
+            if ($draft->status !== 'draft') {
+                return response()->json([
+                    'message' => 'This request is no longer a draft'
+                ], 422);
+            }
+
+            // Update the draft
+            $draft->update([
+                'title' => $request->title,
+                'description' => $request->description,
+                'new_data' => $request->new_data
+            ]);
+
+            return response()->json([
+                'message' => 'Draft updated successfully',
+                'redirect' => route('change-requests.index'),
+                'draft_id' => $draft->id
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error updating draft: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Store a change request.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): JsonResponse
     {
         try {
             $validated = $request->validate([
+                'id' => 'sometimes|exists:change_requests,id',
                 'title' => 'required|string|max:255',
                 'description' => 'required|string',
                 'new_data' => 'required|json'
             ]);
 
-            $changeRequest = ChangeRequest::create([
+            // If ID exists, update existing request
+            if (!empty($validated['id'])) {
+                return $this->update($request, $validated['id']);
+            }
+
+            // Create new change request
+            ChangeRequest::create([
                 'user_id' => Auth::id(),
                 'title' => $validated['title'],
                 'description' => $validated['description'],
@@ -250,13 +308,54 @@ class ChangeRequestController extends Controller
                 'status' => 'pending'
             ]);
 
-            return redirect()
-                ->route('change-requests.show', $changeRequest)
-                ->with('success', 'Change request submitted successfully');
+            return response()->json([
+                'message' => 'Request submitted successfully',
+                'redirect' => route('change-requests.index')
+            ]);
         } catch (\Exception $e) {
-            return back()
-                ->withInput()
-                ->withErrors(['error' => 'Error submitting change request: ' . $e->getMessage()]);
+            return response()->json([
+                'message' => 'Error submitting change request: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    protected function update(Request $request, int $id): JsonResponse
+    {
+        try {
+            // Find the change request and verify ownership
+            $changeRequest = ChangeRequest::where('id', $id)
+                ->where('user_id', Auth::id())
+                ->first();
+
+            if (!$changeRequest) {
+                return response()->json([
+                    'message' => 'Change request not found or unauthorized'
+                ], 404);
+            }
+
+            // Check if request can be updated
+            if ($changeRequest->status !== 'draft') {
+                return response()->json([
+                    'message' => 'Cannot update request - current status: ' . $changeRequest->status
+                ], 422);
+            }
+
+            // Update the change request
+            $changeRequest->update([
+                'title' => $request->title,
+                'description' => $request->description,
+                'new_data' => $request->new_data,
+                'status' => 'pending'
+            ]);
+
+            return response()->json([
+                'message' => 'Request updated successfully',
+                'redirect' => route('change-requests.index')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error updating change request: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -308,38 +407,5 @@ class ChangeRequestController extends Controller
         $formattedData['changeRequest'] = $changeRequest;
 
         return view('change-requests.edit', $formattedData);
-    }
-
-    /**
-     * Update draft change request
-     */
-    public function updateDraft(Request $request, ChangeRequest $changeRequest): JsonResponse
-    {
-        try {
-            if ($changeRequest->status !== 'draft') {
-                throw new \Exception('Only draft requests can be updated');
-            }
-
-            $validated = $request->validate([
-                'title' => 'required|string|max:255',
-                'description' => 'required|string',
-                'new_data' => 'required|json'
-            ]);
-
-            $changeRequest->update([
-                'title' => $validated['title'],
-                'description' => $validated['description'],
-                'new_data' => $validated['new_data']
-            ]);
-
-            return response()->json([
-                'message' => 'Draft updated successfully',
-                'redirect' => route('change-requests.index')
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Error updating draft: ' . $e->getMessage()
-            ], 500);
-        }
     }
 }

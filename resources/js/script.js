@@ -7,12 +7,12 @@ $(function () {
         subregions: $("#subregions-table"),
         countries: $("#countries-table"),
         states: $("#states-table"),
-        cities: $("#cities-table")
+        cities: $("#cities-table"),
     };
 
     const $dropdowns = {
         countries: $("#countries-dropdown"),
-        states: $("#states-dropdown")
+        states: $("#states-dropdown"),
     };
 
     const $searchInput = $("#search-input");
@@ -20,7 +20,6 @@ $(function () {
     const $formTitle = $("#form-title");
     const $actions = $("#actions");
     const $addRowBtn = $("#add-row-btn");
-    const $submitBtn = $("#change-request-submit");
 
     // Initial state
     const initialState = {
@@ -30,21 +29,21 @@ $(function () {
             $tables.states,
             $tables.cities,
             ...Object.values($dropdowns),
-            $actions
+            $actions,
         ],
         activeTable: $tables.regions,
-        activeTab: "regions-tab"
+        activeTab: "regions-tab",
     };
 
     // Hide non-region elements initially
-    initialState.hiddenElements.forEach($el => $el.hide());
+    initialState.hiddenElements.forEach(($el) => $el.hide());
 
     // Show regions table and set active tab
     $tables.regions.show();
     $(`#${initialState.activeTab}`).addClass("active-tab");
 
     function switchTab(tabId, tableId) {
-        Object.values($tables).forEach($table => $table.hide());
+        Object.values($tables).forEach(($table) => $table.hide());
         $(tableId).show();
 
         $(".active-tab").removeClass("active-tab");
@@ -61,7 +60,7 @@ $(function () {
     }
 
     // Table tab click handler
-    $tableTabs.on("click", function() {
+    $tableTabs.on("click", function () {
         const $this = $(this);
         switchTab($this.attr("id"), $this.attr("data-table"));
 
@@ -83,7 +82,7 @@ $(function () {
     });
 
     // Search input handler
-    $searchInput.on("input", function() {
+    $searchInput.on("input", function () {
         const searchText = $(this).val().toLowerCase();
         const activeTab = $(".active-tab").attr("id").replace("-tab", "");
         const params = new URLSearchParams({ search: searchText });
@@ -92,22 +91,22 @@ $(function () {
         const $addedRows = $(`tr[data-id^="added-"]`).detach();
         console.log($addedRows);
 
-        switch(activeTab) {
+        switch (activeTab) {
             case "regions":
-                $tables.regions.load(`/regions?${params}`, function() {
+                $tables.regions.load(`/regions?${params}`, function () {
                     storeOriginalData();
                     // Reattach added rows after loading
                     $tables.regions.find("#table-body").append($addedRows);
                 });
                 break;
             case "subregions":
-                $tables.subregions.load(`/subregions?${params}`, function() {
+                $tables.subregions.load(`/subregions?${params}`, function () {
                     storeOriginalData();
                     $tables.subregions.find("#table-body").append($addedRows);
                 });
                 break;
             case "countries":
-                $tables.countries.load(`/countries?${params}`, function() {
+                $tables.countries.load(`/countries?${params}`, function () {
                     storeOriginalData();
                     $tables.countries.find("#table-body").append($addedRows);
                 });
@@ -117,7 +116,7 @@ $(function () {
                 if (countryId) {
                     params.append("country_id", countryId);
                 }
-                $tables.states.load(`/states?${params}`, function() {
+                $tables.states.load(`/states?${params}`, function () {
                     storeOriginalData();
                     $tables.states.find("#table-body").append($addedRows);
                 });
@@ -128,15 +127,25 @@ $(function () {
                 const stateId = $("#states-select").val();
 
                 if (stateId) {
-                    $tables.cities.load(`/cities-by-state?state_id=${stateId}&${params}`, function() {
-                        storeOriginalData();
-                        $tables.cities.find("#table-body").append($addedRows);
-                    });
+                    $tables.cities.load(
+                        `/cities-by-state?state_id=${stateId}&${params}`,
+                        function () {
+                            storeOriginalData();
+                            $tables.cities
+                                .find("#table-body")
+                                .append($addedRows);
+                        }
+                    );
                 } else if (countryId) {
-                    $tables.cities.load(`/cities-by-country?country_id=${countryId}&${params}`, function() {
-                        storeOriginalData();
-                        $tables.cities.find("#table-body").append($addedRows);
-                    });
+                    $tables.cities.load(
+                        `/cities-by-country?country_id=${countryId}&${params}`,
+                        function () {
+                            storeOriginalData();
+                            $tables.cities
+                                .find("#table-body")
+                                .append($addedRows);
+                        }
+                    );
                 }
                 break;
             }
@@ -144,15 +153,20 @@ $(function () {
     });
 
     // Country dropdown handler
-    $("#countries-select").on("change", function() {
+    $("#countries-select").on("change", function () {
         const countryId = $(this).val();
         const searchText = $searchInput.val().toLowerCase();
 
         if ($("#states-tab").hasClass("active-tab")) {
-            $tables.states.show().load(`/states?country_id=${countryId}&search=${searchText}`, function() {
-                storeOriginalData();
-                loadSavedData();
-            });
+            $tables.states
+                .show()
+                .load(
+                    `/states?country_id=${countryId}&search=${searchText}`,
+                    function () {
+                        storeOriginalData();
+                        loadSavedData();
+                    }
+                );
         } else if ($("#cities-tab").hasClass("active-tab")) {
             $("#states-select").prop("selectedIndex", 0);
 
@@ -163,25 +177,33 @@ $(function () {
             });
 
             // Load cities for country
-            $tables.cities.show().load(`/cities-by-country?country_id=${countryId}&search=${searchText}`, function() {
-                storeOriginalData();
-                loadSavedData();
-            });
+            $tables.cities
+                .show()
+                .load(
+                    `/cities-by-country?country_id=${countryId}&search=${searchText}`,
+                    function () {
+                        storeOriginalData();
+                        loadSavedData();
+                    }
+                );
         }
     });
 
     // Attach state dropdown handler
-    function attachStateDropdownHandler() {
-        $("#states-select").off("change").on("change", function() {
-            if ($("#cities-tab").hasClass("active-tab")) {
-                const stateId = $(this).val();
-                const searchText = $searchInput.val().toLowerCase();
-                $tables.cities.show().load(`/cities-by-state?state_id=${stateId}&search=${searchText}`, function() {
-                    storeOriginalData();
-                    loadSavedData();
-                });
-            }
-        });
+    function getCitiesByState() {
+        if ($("#cities-tab").hasClass("active-tab")) {
+            const stateId = $(this).val();
+            const searchText = $searchInput.val().toLowerCase();
+            $tables.cities
+                .show()
+                .load(
+                    `/cities-by-state?state_id=${stateId}&search=${searchText}`,
+                    function () {
+                        storeOriginalData();
+                        loadSavedData();
+                    }
+                );
+        }
     }
 
     // Row management functions
@@ -193,12 +215,16 @@ $(function () {
             const id = $row.data("id");
 
             // Skip if row is added, deleted or changed
-            if (id.startsWith("added-") || $row.hasClass("deleted-row") || $row.hasClass("changed-row")) {
+            if (
+                id.startsWith("added-") ||
+                $row.hasClass("deleted-row") ||
+                $row.hasClass("changed-row")
+            ) {
                 return;
             }
 
             const rowData = {};
-            $row.find("input").each(function() {
+            $row.find("input").each(function () {
                 const $input = $(this);
                 const name = $input.attr("name");
                 const value = $input.val();
@@ -216,15 +242,16 @@ $(function () {
             const originalData = $(row).data("original");
             if (!originalData) return false;
 
-            return Array.from($(row).find("input")).some(input => {
+            return Array.from($(row).find("input")).some((input) => {
                 const $input = $(input);
                 return originalData[$input.attr("name")] !== $input.val();
             });
         },
 
         isEmpty(row) {
-            return Array.from($(row).find('input[type="text"]'))
-                .every(input => $(input).val().trim() === "");
+            return Array.from($(row).find('input[type="text"]')).every(
+                (input) => $(input).val().trim() === ""
+            );
         },
 
         save(row) {
@@ -232,7 +259,7 @@ $(function () {
             const id = $row.data("id");
             const data = {};
 
-            $row.find("input").each(function() {
+            $row.find("input").each(function () {
                 data[$(this).attr("name")] = $(this).val();
             });
 
@@ -259,11 +286,14 @@ $(function () {
 
             this.store.setItem(`deleted-${id}`, "true");
             $row.addClass("deleted-row")
-                .find(".delete-btn, .edit-btn").hide()
+                .find(".delete-btn, .edit-btn")
+                .hide()
                 .end()
-                .find(".undo-btn").show()
+                .find(".undo-btn")
+                .show()
                 .end()
-                .find(".save-btn").addClass("hidden");
+                .find(".save-btn")
+                .addClass("hidden");
         },
 
         restore(row) {
@@ -272,9 +302,11 @@ $(function () {
 
             this.store.removeItem(`deleted-${id}`);
             $row.removeClass("deleted-row")
-                .find(".undo-btn").hide()
+                .find(".undo-btn")
+                .hide()
                 .end()
-                .find(".delete-btn, .edit-btn").show();
+                .find(".delete-btn, .edit-btn")
+                .show();
         },
 
         getOriginalValue(id, field) {
@@ -294,12 +326,12 @@ $(function () {
             }
 
             return null;
-        }
+        },
     };
 
     // Initialize row data
     function storeOriginalData() {
-        $("table tr[data-id]").each(function() {
+        $("table tr[data-id]").each(function () {
             RowManager.storeOriginal(this);
         });
     }
@@ -312,16 +344,18 @@ $(function () {
             const key = sessionStorage.key(i);
             const value = sessionStorage.getItem(key);
 
-            tables.forEach(table => {
+            tables.forEach((table) => {
                 if (key.startsWith(`${table}_`)) {
                     const $row = $(`tr[data-id="${key}"]`);
                     if ($row.length) {
                         $row.addClass("changed-row");
                         $row.find(".edit-btn").addClass("hidden");
                         $row.find(".save-btn").removeClass("hidden");
-                        Object.entries(JSON.parse(value)).forEach(([name, value]) => {
-                            $row.find(`input[name="${name}"]`).val(value);
-                        });
+                        Object.entries(JSON.parse(value)).forEach(
+                            ([name, value]) => {
+                                $row.find(`input[name="${name}"]`).val(value);
+                            }
+                        );
                     }
                 }
 
@@ -337,16 +371,19 @@ $(function () {
                 }
 
                 if (key.startsWith("added-")) {
-                    const id = key;  // Use full key as the data-id
+                    const id = key; // Use full key as the data-id
                     const $existingRow = $(`tr[data-id="${id}"]`);
 
-                    if (!$existingRow.length && table === key.split("-")[1].split("_")[0]) {
+                    if (
+                        !$existingRow.length &&
+                        table === key.split("-")[1].split("_")[0]
+                    ) {
                         const tableTypeMap = {
-                            city: 'cities',
-                            country: 'countries',
-                            state: 'states',
-                            subregion: 'subregions',
-                            region: 'regions'
+                            city: "cities",
+                            country: "countries",
+                            state: "states",
+                            subregion: "subregions",
+                            region: "regions",
                         };
                         const tabId = `${tableTypeMap[table]}-tab`;
                         if ($(`#${tabId}`).hasClass("active-tab")) {
@@ -356,9 +393,13 @@ $(function () {
 
                             if ($newRow.length) {
                                 $newRow.addClass("added-row");
-                                Object.entries(JSON.parse(value)).forEach(([name, value]) => {
-                                    $newRow.find(`input[name="${name}"]`).val(value);
-                                });
+                                Object.entries(JSON.parse(value)).forEach(
+                                    ([name, value]) => {
+                                        $newRow
+                                            .find(`input[name="${name}"]`)
+                                            .val(value);
+                                    }
+                                );
                             }
                         }
                     }
@@ -373,11 +414,11 @@ $(function () {
         const $tableBody = $(activeTable).find("#table-body");
         let tableType = $(".active-tab").attr("id").replace("-tab", "");
         const tableTypeMap = {
-            cities: 'city',
-            countries: 'country',
-            states: 'state',
-            subregions: 'subregion',
-            regions: 'region'
+            cities: "city",
+            countries: "country",
+            states: "state",
+            subregions: "subregion",
+            regions: "region",
         };
         tableType = tableTypeMap[tableType] || tableType;
 
@@ -398,11 +439,14 @@ $(function () {
         `);
 
         const $headers = $(activeTable).find("thead th");
-        $headers.each(function(index) {
+        $headers.each(function (index) {
             if (index > 0 && index < $headers.length - 1) {
                 $newRow.append(`
                     <td class="px-1 py-1">
-                        <input type="text" name="${$(this).text().toLowerCase().replace(/\s+/g, "_")}"
+                        <input type="text" name="${$(this)
+                            .text()
+                            .toLowerCase()
+                            .replace(/\s+/g, "_")}"
                                value="" disabled>
                     </td>
                 `);
@@ -422,7 +466,7 @@ $(function () {
 
         // Also store original data for new rows right after they're added
         const originalAddNewRow = addNewRow;
-        addNewRow = function(newId = false) {
+        addNewRow = function (newId = false) {
             const $newRow = originalAddNewRow(newId);
             RowManager.storeOriginal($newRow[0]);
             return $newRow;
@@ -430,106 +474,181 @@ $(function () {
     }
 
     // Row action button handlers
-    $("body").on("click", ".edit-btn, .save-btn, .delete-btn, .undo-btn", function() {
-        const $btn = $(this);
-        const $row = $btn.closest("tr");
+    $("body").on(
+        "click",
+        ".edit-btn, .save-btn, .delete-btn, .undo-btn",
+        function () {
+            const $btn = $(this);
+            const $row = $btn.closest("tr");
 
-        if ($btn.hasClass("edit-btn")) {
-            const $inputs = $row.find("input");
-            $inputs.prop("disabled", false);
+            if ($btn.hasClass("edit-btn")) {
+                const $inputs = $row.find("input");
+                $inputs.prop("disabled", false);
 
-            $inputs.on("input", () => {
-                $row.toggleClass("changed-row", RowManager.hasChanged($row));
-            });
+                $inputs.on("input", () => {
+                    $row.toggleClass(
+                        "changed-row",
+                        RowManager.hasChanged($row)
+                    );
+                });
 
-            $btn.addClass("hidden");
-            $row.find(".save-btn").removeClass("hidden");
-        }
-        else if ($btn.hasClass("save-btn")) {
-            const $inputs = $row.find("input");
-            $inputs.prop("disabled", true).off("input");
+                $btn.addClass("hidden");
+                $row.find(".save-btn").removeClass("hidden");
+            } else if ($btn.hasClass("save-btn")) {
+                const $inputs = $row.find("input");
+                $inputs.prop("disabled", true).off("input");
 
-            if (!RowManager.hasChanged($row)) {
-                $row.removeClass("changed-row");
+                if (!RowManager.hasChanged($row)) {
+                    $row.removeClass("changed-row");
+                }
+
+                RowManager.save($row);
+
+                $btn.addClass("hidden");
+                $row.find(".edit-btn").removeClass("hidden");
+            } else if ($btn.hasClass("delete-btn")) {
+                RowManager.delete($row);
+            } else if ($btn.hasClass("undo-btn")) {
+                RowManager.restore($row);
             }
-
-            RowManager.save($row);
-
-            $btn.addClass("hidden");
-            $row.find(".edit-btn").removeClass("hidden");
         }
-        else if ($btn.hasClass("delete-btn")) {
-            RowManager.delete($row);
-        }
-        else if ($btn.hasClass("undo-btn")) {
-            RowManager.restore($row);
-        }
-    });
+    );
 
     // Add new row button handler
     $addRowBtn.on("click", () => addNewRow());
 
-    // Form submission handler
-    $submitBtn.on("click", function(e) {
-        e.preventDefault();
-
+    function saveRequest() {
         const title = $("#request_title").val();
         const description = $("#request_description").val();
-
+    
+        // Get request ID if it exists
+        const id = $("[name=change_request_id]").length ? 
+            $("[name=change_request_id]").val() : null;
+    
+        // Form validation
         if (!title || !description) {
             alert("Please fill in both title and description");
             return;
         }
-
+    
+        // Collect all changes
         const changes = collectChanges();
-
+    
+        // If no changes, alert user
+        if (!Object.keys(changes.modifications).length && 
+            !changes.deletions.length && 
+            !Object.keys(changes.additions).length) {
+            alert("No changes detected. Please make some changes before submitting.");
+            return;
+        }
+    
+        // Create form data
+        const formData = {
+            title: title,
+            description: description,
+            new_data: JSON.stringify(changes),
+            _token: $('meta[name="csrf-token"]').attr("content"),
+        };
+    
+        // Add ID if updating existing request
+        if (id) {
+            formData.id = id;
+        }
+    
+        // Submit the request
         $.ajax({
-            url: '/change-requests/draft',
-            method: 'POST',
-            data: {
-                title: title,
-                description: description,
-                new_data: JSON.stringify(changes),
-                _token: $('meta[name="csrf-token"]').attr('content')
-            },
+            url: "/change-requests",
+            method: "POST",
+            data: formData,
             success: function(response) {
-                // Clear session storage
-                sessionStorage.clear();
-                // Redirect to the change requests list
-                window.location.href = response.redirect;
+                // Show success message
+                alert(response.message);
+    
+                // Redirect to the change request show page or index
+                if (response.redirect) {
+                    window.location.href = response.redirect;
+                } else {
+                    window.location.href = "/change-requests";
+                }
             },
             error: function(error) {
-                alert('Error saving draft: ' + error.responseJSON.message);
+                const errorMessage = error.responseJSON?.message || "Unknown error occurred";
+                alert("Error submitting changes: " + errorMessage);
             }
         });
-    });
+    }
 
-    // Add these new functions
     function saveDraft() {
         const title = $("#request_title").val();
         const description = $("#request_description").val();
-
+    
+        // Get draft ID if it exists
+        const id = $("[name=change_request_id]").length ? 
+            $("[name=change_request_id]").val() : null;
+    
+        // Form validation
         if (!title || !description) {
             alert("Please fill in both title and description");
             return;
         }
-
+    
+        // Collect all changes
         const changes = collectChanges();
-
+    
+        // If no changes, alert user
+        if (!Object.keys(changes.modifications).length && 
+            !changes.deletions.length && 
+            !Object.keys(changes.additions).length) {
+            alert("No changes detected. Please make some changes before saving.");
+            return;
+        }
+    
+        // Create form data
+        const formData = {
+            title: title,
+            description: description,
+            new_data: JSON.stringify(changes),
+            _token: $('meta[name="csrf-token"]').attr("content"),
+        };
+    
+        // Add ID if updating existing draft
+        if (id) {
+            formData.id = id;
+        }
+    
+        // Submit the draft
         $.ajax({
-            url: '/change-requests/draft',
-            method: 'POST',
-            data: {
-                title: title,
-                description: description,
-                new_data: JSON.stringify(changes),
-                _token: $('meta[name="csrf-token"]').attr('content')
-            },
+            url: "/change-requests/draft",
+            method: "POST",
+            data: formData,
             success: function(response) {
-                alert('Draft saved successfully!');
+                // Update the form with the new draft ID if provided
+                if (response.draft_id && !id) {
+                    $("<input>")
+                        .attr({
+                            type: 'hidden',
+                            name: 'change_request_id',
+                            value: response.draft_id
+                        })
+                        .appendTo("#change-request-form");
+                }
+    
+                // Show success message
+                alert(response.message);
+    
+                // Store the draft ID in session if needed
+                if (response.draft_id) {
+                    sessionStorage.setItem('current_draft_id', response.draft_id);
+                }
+    
+                // Redirect if specified
+                if (response.redirect) {
+                    window.location.href = response.redirect;
+                }
             },
             error: function(error) {
-                alert('Error saving draft: ' + error.responseJSON.message);
+                const errorMessage = error.responseJSON?.message || "Unknown error occurred";
+                alert("Error saving draft: " + errorMessage);
             }
         });
     }
@@ -538,21 +657,23 @@ $(function () {
         const changes = collectChanges();
 
         // Clear previous content
-        $('#modifications-table-body, #additions-table-body, #deletions-table-body').empty();
+        $(
+            "#modifications-table-body, #additions-table-body, #deletions-table-body"
+        ).empty();
 
         // Populate modifications
         if (Object.keys(changes.modifications).length) {
             Object.entries(changes.modifications).forEach(([table, rows]) => {
                 Object.entries(rows).forEach(([id, data]) => {
-                    const $row = $('<tr>');
+                    const $row = $("<tr>");
 
                     // Add header cells with ID column
                     $row.append(`
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Table</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">ID</th>
                     `);
-                    Object.keys(data).forEach(field => {
-                        if (field !== 'id') {
+                    Object.keys(data).forEach((field) => {
+                        if (field !== "id") {
                             $row.append(`
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">${field}</th>
                             `);
@@ -560,30 +681,41 @@ $(function () {
                     });
 
                     // Add data row with ID column
-                    const $dataRow = $('<tr>');
+                    const $dataRow = $("<tr>");
                     $dataRow.append(`
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${table}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${id.split('_')[1]}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${
+                            id.split("_")[1]
+                        }</td>
                     `);
                     Object.entries(data).forEach(([field, value]) => {
-                        if (field !== 'id') {
-                            const originalValue = RowManager.getOriginalValue(id, field);
+                        if (field !== "id") {
+                            const originalValue = RowManager.getOriginalValue(
+                                id,
+                                field
+                            );
                             if (originalValue !== value) {
                                 $dataRow.append(`
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                        <span class="text-red-500 line-through block">${originalValue || ''}</span>
-                                        <span class="text-green-500 block">${value || ''}</span>
+                                        <span class="text-red-500 line-through block">${
+                                            originalValue || ""
+                                        }</span>
+                                        <span class="text-green-500 block">${
+                                            value || ""
+                                        }</span>
                                     </td>
                                 `);
                             } else {
                                 $dataRow.append(`
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${value || ''}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${
+                                        value || ""
+                                    }</td>
                                 `);
                             }
                         }
                     });
 
-                    $('#modifications-table-body').append($row, $dataRow);
+                    $("#modifications-table-body").append($row, $dataRow);
                 });
             });
         }
@@ -591,16 +723,16 @@ $(function () {
         // Populate additions with ID column
         if (Object.keys(changes.additions).length) {
             Object.entries(changes.additions).forEach(([key, data]) => {
-                const [_, table] = key.split('-');
-                const $row = $('<tr>');
+                const [_, table] = key.split("-");
+                const $row = $("<tr>");
 
                 // Add header cells with ID column
                 $row.append(`
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Table</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">ID</th>
                 `);
-                Object.keys(data).forEach(field => {
-                    if (field !== 'id') {
+                Object.keys(data).forEach((field) => {
+                    if (field !== "id") {
                         $row.append(`
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">${field}</th>
                         `);
@@ -608,82 +740,166 @@ $(function () {
                 });
 
                 // Add data row with ID column
-                const $dataRow = $('<tr>');
+                const $dataRow = $("<tr>");
                 $dataRow.append(`
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${table}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${key.split('_')[1]}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${
+                        key.split("_")[1]
+                    }</td>
                 `);
                 Object.entries(data).forEach(([field, value]) => {
-                    if (field !== 'id') {
+                    if (field !== "id") {
                         $dataRow.append(`
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-green-500">${value || ''}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-green-500">${
+                                value || ""
+                            }</td>
                         `);
                     }
                 });
 
-                $('#additions-table-body').append($row, $dataRow);
+                $("#additions-table-body").append($row, $dataRow);
             });
         }
 
         // Populate deletions with ID column
         if (changes.deletions.length) {
-            const $row = $('<tr>');
+            const $row = $("<tr>");
             $row.append(`
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Table</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">ID</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">Name</th>
             `);
 
-            changes.deletions.forEach(key => {
-                const [table, id] = key.split('_');
-                const name = $(`tr[data-id="${key}"]`).find('input[name="name"]').val();
-                const $dataRow = $('<tr>');
+            changes.deletions.forEach((key) => {
+                const [table, id] = key.split("_");
+                const name = $(`tr[data-id="${key}"]`)
+                    .find('input[name="name"]')
+                    .val();
+                const $dataRow = $("<tr>");
                 $dataRow.append(`
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${table}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${id}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-red-500">${name}</td>
                 `);
-                $('#deletions-table-body').append($row, $dataRow);
+                $("#deletions-table-body").append($row, $dataRow);
             });
         }
 
         // Show the modal
-        window.dispatchEvent(new CustomEvent('open-modal', { detail: 'review-changes-modal' }));
+        window.dispatchEvent(
+            new CustomEvent("open-modal", { detail: "review-changes-modal" })
+        );
     }
 
-    // Add event listeners
-    $("#save-draft-btn").on("click", saveDraft);
-    $("#review-changes-btn").on("click", showReviewChanges);
-    $("#confirm-changes-btn").on("click", function() {
-        window.dispatchEvent(new CustomEvent('close-modal', { detail: 'review-changes-modal' }));
-        window.dispatchEvent(new CustomEvent('open-modal', { detail: 'confirm-submit-modal' }));
-    });
-    $("#final-submit-btn").on("click", function() {
-        // Clear session storage before submitting
-        // sessionStorage.clear();
-        $("#change-request-form").trigger("submit");
-    });
+    function loadExistingData() {
+        const changes = window.existingChanges;
+        const convert = JSON.parse(changes);
+        // console.log(convert);
 
-    // Add tab switching functionality
-    $(".review-tab").on("click", function() {
-        const target = $(this).data("target");
-        $(".review-tab").removeClass("active");
-        $(".review-content").removeClass("active").addClass("hidden");
-        $(this).addClass("active");
-        $(`#${target}-content`).addClass("active").removeClass("hidden");
-    });
+        if (convert.modifications) {
+            if (convert.modifications.city) {
+                Object.keys(convert.modifications.city).forEach((key) => {
+                    sessionStorage.setItem(
+                        key,
+                        JSON.stringify(convert.modifications.city[key])
+                    );
+                });
+            }
+            if (convert.modifications.region) {
+                Object.keys(convert.modifications.region).forEach((key) => {
+                    sessionStorage.setItem(
+                        key,
+                        JSON.stringify(convert.modifications.region[key])
+                    );
+                });
+            }
 
-    // Initialize
-    storeOriginalData();
-    loadSavedData();
-    attachStateDropdownHandler();
+            if (convert.modifications.subregion) {
+                Object.keys(convert.modifications.subregion).forEach((key) => {
+                    sessionStorage.setItem(
+                        key,
+                        JSON.stringify(convert.modifications.subregion[key])
+                    );
+                });
+            }
+
+            if (convert.modifications.country) {
+                Object.keys(convert.modifications.country).forEach((key) => {
+                    sessionStorage.setItem(
+                        key,
+                        JSON.stringify(convert.modifications.country[key])
+                    );
+                });
+            }
+
+            if (convert.modifications.state) {
+                Object.keys(convert.modifications.state).forEach((key) => {
+                    sessionStorage.setItem(
+                        key,
+                        JSON.stringify(convert.modifications.state[key])
+                    );
+                });
+            }
+        }
+
+        if (convert.deletions) {
+            convert.deletions.forEach((id) => {
+                sessionStorage.setItem(`deleted-${id}`, "true");
+            });
+        }
+
+        if (convert.additions) {
+            Object.entries(convert.additions).forEach(([key, data]) => {
+                sessionStorage.setItem(key, JSON.stringify(data));
+            });
+        }
+    }
+
+    if (
+        window.location.href.includes("edit") ||
+        window.location.href.includes("new")
+    ) {
+        // Add event listeners
+        $("#save-draft-btn").on("click", saveDraft);
+        $("#review-changes-btn").on("click", showReviewChanges);
+        $("#confirm-changes-btn").on("click", function () {
+            window.dispatchEvent(
+                new CustomEvent("close-modal", {
+                    detail: "review-changes-modal",
+                })
+            );
+            window.dispatchEvent(
+                new CustomEvent("open-modal", {
+                    detail: "confirm-submit-modal",
+                })
+            );
+        });
+        $("#final-submit-btn, #change-request-submit").on("click", saveRequest);
+        $("#states-select").off("change").on("change", getCitiesByState);
+
+        // Add tab switching functionality
+        $(".review-tab").on("click", function () {
+            const target = $(this).data("target");
+            $(".review-tab").removeClass("active");
+            $(".review-content").removeClass("active").addClass("hidden");
+            $(this).addClass("active");
+            $(`#${target}-content`).addClass("active").removeClass("hidden");
+        });
+
+        // Initialize
+
+        sessionStorage.clear();
+        loadExistingData();
+        storeOriginalData();
+        loadSavedData();
+    }
 
     // Add this function after the RowManager object
     function collectChanges() {
         const changes = {
             modifications: {},
             deletions: [],
-            additions: {}
+            additions: {},
         };
 
         // Loop through all items in sessionStorage
@@ -694,17 +910,24 @@ $(function () {
             if (key.startsWith("deleted-")) {
                 // Handle deletions
                 changes.deletions.push(key.replace("deleted-", ""));
-            }
-            else if (key.startsWith("added-")) {
+            } else if (key.startsWith("added-")) {
                 // Handle additions
                 const [_, tableType, id] = key.split("-");
                 changes.additions[key] = JSON.parse(value);
-            }
-            else {
+            } else {
                 // Handle modifications
                 const [table] = key.split("_");
-                if (["region", "subregion", "country", "state", "city"].includes(table)) {
-                    changes.modifications[table] = changes.modifications[table] || {};
+                if (
+                    [
+                        "region",
+                        "subregion",
+                        "country",
+                        "state",
+                        "city",
+                    ].includes(table)
+                ) {
+                    changes.modifications[table] =
+                        changes.modifications[table] || {};
                     changes.modifications[table][key] = JSON.parse(value);
                 }
             }
