@@ -67,7 +67,11 @@ class ChangeRequestController extends Controller
         try {
             $query = $modelClass::query();
             $searchText = $request->input('search');
-            $fieldId = $request->input($relationField);
+            $fieldId = 'null';
+
+            if ($relationField) {
+                $fieldId = $request->input($relationField);
+            }
 
             // Get model configuration
             $config = $this->getModelSelects($modelClass);
@@ -89,11 +93,12 @@ class ChangeRequestController extends Controller
             }
 
             // Get data with appropriate pagination
-            $data = $relationField === 'country_id' ? $query->get() : $query->paginate($config['perPage']);
+            $data = $query->get();
 
             // Get view data
             $viewName = strtolower(class_basename($modelClass)) . 's';
             $viewName = $viewName === 'citys' ? 'cities' : $viewName;
+            $viewName = $viewName === 'countrys' ? 'countries' : $viewName;
             $dataKey = strtolower(class_basename($modelClass)) . 'Data';
             $headersKey = strtolower(class_basename($modelClass)) . 'Headers';
 

@@ -89,7 +89,6 @@ $(function () {
 
         // Store all added rows before filtering
         const $addedRows = $(`tr[data-id^="added-"]`).detach();
-        console.log($addedRows);
 
         switch (activeTab) {
             case "regions":
@@ -484,6 +483,7 @@ $(function () {
             if ($btn.hasClass("edit-btn")) {
                 const $inputs = $row.find("input");
                 $inputs.prop("disabled", false);
+                // $row.addClass("changed-row");
 
                 $inputs.on("input", () => {
                     $row.toggleClass(
@@ -520,28 +520,33 @@ $(function () {
     function saveRequest() {
         const title = $("#request_title").val();
         const description = $("#request_description").val();
-    
+
         // Get request ID if it exists
-        const id = $("[name=change_request_id]").length ? 
-            $("[name=change_request_id]").val() : null;
-    
+        const id = $("[name=change_request_id]").length
+            ? $("[name=change_request_id]").val()
+            : null;
+
         // Form validation
         if (!title || !description) {
             alert("Please fill in both title and description");
             return;
         }
-    
+
         // Collect all changes
         const changes = collectChanges();
-    
+
         // If no changes, alert user
-        if (!Object.keys(changes.modifications).length && 
-            !changes.deletions.length && 
-            !Object.keys(changes.additions).length) {
-            alert("No changes detected. Please make some changes before submitting.");
+        if (
+            !Object.keys(changes.modifications).length &&
+            !changes.deletions.length &&
+            !Object.keys(changes.additions).length
+        ) {
+            alert(
+                "No changes detected. Please make some changes before submitting."
+            );
             return;
         }
-    
+
         // Create form data
         const formData = {
             title: title,
@@ -549,21 +554,21 @@ $(function () {
             new_data: JSON.stringify(changes),
             _token: $('meta[name="csrf-token"]').attr("content"),
         };
-    
+
         // Add ID if updating existing request
         if (id) {
             formData.id = id;
         }
-    
+
         // Submit the request
         $.ajax({
             url: "/change-requests",
             method: "POST",
             data: formData,
-            success: function(response) {
+            success: function (response) {
                 // Show success message
                 alert(response.message);
-    
+
                 // Redirect to the change request show page or index
                 if (response.redirect) {
                     window.location.href = response.redirect;
@@ -571,38 +576,44 @@ $(function () {
                     window.location.href = "/change-requests";
                 }
             },
-            error: function(error) {
-                const errorMessage = error.responseJSON?.message || "Unknown error occurred";
+            error: function (error) {
+                const errorMessage =
+                    error.responseJSON?.message || "Unknown error occurred";
                 alert("Error submitting changes: " + errorMessage);
-            }
+            },
         });
     }
 
     function saveDraft() {
         const title = $("#request_title").val();
         const description = $("#request_description").val();
-    
+
         // Get draft ID if it exists
-        const id = $("[name=change_request_id]").length ? 
-            $("[name=change_request_id]").val() : null;
-    
+        const id = $("[name=change_request_id]").length
+            ? $("[name=change_request_id]").val()
+            : null;
+
         // Form validation
         if (!title || !description) {
             alert("Please fill in both title and description");
             return;
         }
-    
+
         // Collect all changes
         const changes = collectChanges();
-    
+
         // If no changes, alert user
-        if (!Object.keys(changes.modifications).length && 
-            !changes.deletions.length && 
-            !Object.keys(changes.additions).length) {
-            alert("No changes detected. Please make some changes before saving.");
+        if (
+            !Object.keys(changes.modifications).length &&
+            !changes.deletions.length &&
+            !Object.keys(changes.additions).length
+        ) {
+            alert(
+                "No changes detected. Please make some changes before saving."
+            );
             return;
         }
-    
+
         // Create form data
         const formData = {
             title: title,
@@ -610,46 +621,50 @@ $(function () {
             new_data: JSON.stringify(changes),
             _token: $('meta[name="csrf-token"]').attr("content"),
         };
-    
+
         // Add ID if updating existing draft
         if (id) {
             formData.id = id;
         }
-    
+
         // Submit the draft
         $.ajax({
             url: "/change-requests/draft",
             method: "POST",
             data: formData,
-            success: function(response) {
+            success: function (response) {
                 // Update the form with the new draft ID if provided
                 if (response.draft_id && !id) {
                     $("<input>")
                         .attr({
-                            type: 'hidden',
-                            name: 'change_request_id',
-                            value: response.draft_id
+                            type: "hidden",
+                            name: "change_request_id",
+                            value: response.draft_id,
                         })
                         .appendTo("#change-request-form");
                 }
-    
+
                 // Show success message
                 alert(response.message);
-    
+
                 // Store the draft ID in session if needed
                 if (response.draft_id) {
-                    sessionStorage.setItem('current_draft_id', response.draft_id);
+                    sessionStorage.setItem(
+                        "current_draft_id",
+                        response.draft_id
+                    );
                 }
-    
+
                 // Redirect if specified
                 if (response.redirect) {
                     window.location.href = response.redirect;
                 }
             },
-            error: function(error) {
-                const errorMessage = error.responseJSON?.message || "Unknown error occurred";
+            error: function (error) {
+                const errorMessage =
+                    error.responseJSON?.message || "Unknown error occurred";
                 alert("Error saving draft: " + errorMessage);
-            }
+            },
         });
     }
 
@@ -794,7 +809,6 @@ $(function () {
     function loadExistingData() {
         const changes = window.existingChanges;
         const convert = JSON.parse(changes);
-        // console.log(convert);
 
         if (convert.modifications) {
             if (convert.modifications.city) {
@@ -889,7 +903,9 @@ $(function () {
         // Initialize
 
         sessionStorage.clear();
-        loadExistingData();
+        if (window.location.href.includes("edit")) {
+            loadExistingData();
+        }
         storeOriginalData();
         loadSavedData();
     }
