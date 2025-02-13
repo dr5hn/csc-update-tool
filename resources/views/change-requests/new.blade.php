@@ -12,7 +12,7 @@
 
                     <!-- Request Details Form -->
                     <div class="mb-8">
-                        <form action="" method="post" id="change-request-form">
+                        <form action="{{ route('change-requests.store')}}" method="post" id="change-request-form">
                             @csrf
                             <div class="grid grid-cols-2 gap-4">
                                 <div>

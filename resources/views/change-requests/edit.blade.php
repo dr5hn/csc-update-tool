@@ -41,6 +41,7 @@
                         ])
 
                         <div class="flex justify-end space-x-4">
+                            <input type="hidden" name="change_request_id"  value="{{ $changeRequest->id }}">
                             <button type="button" id="save-draft-btn"
                                     class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
                                 Save Draft
@@ -57,10 +58,6 @@
     </div>
 
     <script>
-        // Initialize the form with the existing changes
-        document.addEventListener('DOMContentLoaded', function() {
-            const existingChanges = @json(json_decode($changeRequest->new_data));
-            initializeFormWithChanges(existingChanges);
-        });
+            window.existingChanges = @json($changeRequest->new_data);
     </script>
 </x-app-layout>

@@ -17,11 +17,10 @@ Route::middleware('auth')->group(function () {
      Route::prefix('change-requests')->name('change-requests.')->group(function () {
         Route::get('/', [ChangeRequestController::class, 'index'])->name('index');
         Route::get('/new', [ChangeRequestController::class, 'changeRequest'])->name('new');
+        Route::post('/', [ChangeRequestController::class, 'store'])->name('store');
         Route::get('/{changeRequest}', [ChangeRequestController::class, 'show'])->name('show');
         Route::get('/{changeRequest}/edit', [ChangeRequestController::class, 'editDraft'])->name('edit');
         Route::post('/draft', [ChangeRequestController::class, 'storeDraft'])->name('storeDraft');
-        Route::put('/{changeRequest}/draft', [ChangeRequestController::class, 'updateDraft'])->name('updateDraft');
-        Route::post('/', [ChangeRequestController::class, 'store'])->name('store');
     });
 
     // Partial Routes
