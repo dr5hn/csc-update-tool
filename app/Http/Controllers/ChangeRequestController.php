@@ -53,7 +53,7 @@ class ChangeRequestController extends Controller
                 'perPage' => 100
             ],
             Country::class => [
-                'fields' => ['id', 'name', 'iso3', 'numeric_code', 'iso2', 'phonecode', 'capital', 'currency', 'currency_name', 'currency_symbol', 'tld', 'native', 'region_id', 'subregion_id', 'nationality', 'timezones', 'translations', 'latitude', 'longitude', 'emoji', 'emojiU', 'wikiDataId'],
+                'fields' => ['id', 'name', 'iso3', 'numeric_code', 'iso2', 'phonecode', 'capital', 'currency', 'currency_name', 'currency_symbol', 'tld', 'native', 'region', 'region_id', 'subregion', 'subregion_id', 'nationality', 'timezones', 'translations', 'latitude', 'longitude', 'emoji', 'emojiU', 'wikiDataId'],
                 'relations' => ['subregion:id,name,region_id', 'subregion.region:id,name'],
                 'perPage' => 300
             ]
