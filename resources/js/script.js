@@ -19,7 +19,7 @@ $(function () {
     const $tableTabs = $("#table-tabs button");
     const $formTitle = $("#form-title");
     const $actions = $("#actions");
-    const $addRowBtn = $("#add-row-btn");
+    const $addRowBtn = $(".add-row-btn");
 
     // Initial state
     const initialState = {
@@ -462,6 +462,36 @@ $(function () {
         `);
 
         $tableBody.append($newRow);
+
+        // Scroll to the newly added row with offset for header visibility
+        setTimeout(() => {
+            const headerHeight = $(".bg-white").first().outerHeight() || 0;
+            const tableHeaderHeight =
+                $(activeTable).find("thead").outerHeight() || 0;
+            const totalOffset = headerHeight + tableHeaderHeight + 20; // Adding extra padding
+
+            const rowPosition = $newRow.offset().top - totalOffset;
+
+            $("html, body").animate(
+                {
+                    scrollTop: rowPosition,
+                },
+                {
+                    duration: 500,
+                    easing: "swing",
+                    complete: function () {
+                        // Flash effect on the new row
+                        $newRow
+                            .css("backgroundColor", "#e5e7eb")
+                            .delay(200)
+                            .queue(function (next) {
+                                $(this).css("backgroundColor", "");
+                                next();
+                            });
+                    },
+                }
+            );
+        }, 100);
 
         // Also store original data for new rows right after they're added
         const originalAddNewRow = addNewRow;
