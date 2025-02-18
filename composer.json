@@ -12,7 +12,7 @@
         "php": "^8.2",
         "blade-ui-kit/blade-zondicons": "^1.5",
         "laravel/framework": "^11.31",
-        "laravel/socialite": "^5.17",
+        "laravel/socialite": "^5.18",
         "laravel/tinker": "^2.9"
     },
     "require-dev": {

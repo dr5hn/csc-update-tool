@@ -53,7 +53,7 @@ class ChangeRequestController extends Controller
                 'perPage' => 100
             ],
             Country::class => [
-                'fields' => ['id', 'name', 'iso3', 'numeric_code', 'iso2', 'phonecode', 'capital', 'currency', 'currency_name', 'currency_symbol', 'tld', 'native', 'region_id', 'subregion_id', 'nationality', 'timezones', 'translations', 'latitude', 'longitude', 'emoji', 'emojiU', 'wikiDataId'],
+                'fields' => ['id', 'name', 'iso3', 'numeric_code', 'iso2', 'phonecode', 'capital', 'currency', 'currency_name', 'currency_symbol', 'tld', 'native', 'region', 'region_id', 'subregion', 'subregion_id', 'nationality', 'timezones', 'translations', 'latitude', 'longitude', 'emoji', 'emojiU', 'wikiDataId'],
                 'relations' => ['subregion:id,name,region_id', 'subregion.region:id,name'],
                 'perPage' => 300
             ]
@@ -375,14 +375,19 @@ class ChangeRequestController extends Controller
     public function index(): View
     {
         try {
-            $viewData = [
-                'changeRequests' => ChangeRequest::with('user')
-                    ->orderBy('created_at', 'desc')
-                    ->paginate(10),
-                'countries' => Country::orderBy('name')->get()
-            ];
+            $user = Auth::user();
 
-            return view('change-requests.index', $viewData);
+            $query = ChangeRequest::with('user')
+                ->orderBy('created_at', 'desc');
+
+            // If not admin, only show user's own requests
+            if (!$user->is_admin) {
+                $query->where('user_id', $user->id);
+            }
+
+            $changeRequests = $query->paginate(10);
+
+            return view('change-requests.index', compact('changeRequests'));
         } catch (\Exception $e) {
             Log::error('Error in change requests index: ' . $e->getMessage());
             throw $e;
