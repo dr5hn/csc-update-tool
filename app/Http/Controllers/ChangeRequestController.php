@@ -369,6 +369,11 @@ class ChangeRequestController extends Controller
      */
     public function show(ChangeRequest $changeRequest): View
     {
+        // Check if user has permission to view this request
+        if (!Auth::user()->is_admin && $changeRequest->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         return view('change-requests.show', compact('changeRequest'));
     }
 
@@ -418,4 +423,19 @@ class ChangeRequestController extends Controller
 
         return view('change-requests.edit', $formattedData);
     }
+
+    public function storeComment(Request $request, ChangeRequest $changeRequest): RedirectResponse
+    {
+        $validated = $request->validate([
+            'content' => 'required|string|max:1000',
+        ]);
+
+        $changeRequest->comments()->create([
+            'content' => $validated['content'],
+            'user_id' => Auth::id(),
+        ]);
+
+        return back();
+    }
+    
 }

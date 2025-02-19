@@ -40,10 +40,10 @@
                                 <h5 class="text-sm font-semibold mb-2 text-gray-600">{{ ucfirst($table) }}</h5>
                                 @foreach($modifications as $id => $fields)
                                 @php
-                                    $tableName = explode('_', $id)[0];
-                                    $modelClass = 'App\\Models\\' . ucfirst($tableName);
-                                    $recordId = explode('_', $id)[1];
-                                    $originalRecord = $modelClass::find($recordId);
+                                $tableName = explode('_', $id)[0];
+                                $modelClass = 'App\\Models\\' . ucfirst($tableName);
+                                $recordId = explode('_', $id)[1];
+                                $originalRecord = $modelClass::find($recordId);
                                 @endphp
                                 <div class="overflow-x-auto mb-4 bg-gray-50 rounded-lg">
                                     <div class="p-4 border-b border-gray-200">
@@ -64,37 +64,37 @@
                                             <!-- Original Values -->
                                             <tr>
                                                 @foreach($fields as $field => $value)
-                                                    @php
-                                                        $originalValue = $originalRecord ? $originalRecord->$field : 'N/A';
-                                                        if (is_array($originalValue) || is_object($originalValue)) {
-                                                            $originalValue = json_encode($originalValue);
-                                                        }
-                                                        if (is_array($value) || is_object($value)) {
-                                                            $value = json_encode($value);
-                                                        }
-                                                        $hasChanged = (string)$originalValue !== (string)$value;
-                                                    @endphp
-                                                    <td class="px-6 py-3 text-sm border-r last:border-r-0 {{ $hasChanged ? 'bg-red-50 text-red-700' : 'bg-white text-gray-700' }}">
-                                                        {{ $originalValue }}
-                                                    </td>
+                                                @php
+                                                $originalValue = $originalRecord ? $originalRecord->$field : 'N/A';
+                                                if (is_array($originalValue) || is_object($originalValue)) {
+                                                $originalValue = json_encode($originalValue);
+                                                }
+                                                if (is_array($value) || is_object($value)) {
+                                                $value = json_encode($value);
+                                                }
+                                                $hasChanged = (string)$originalValue !== (string)$value;
+                                                @endphp
+                                                <td class="px-6 py-3 text-sm border-r last:border-r-0 {{ $hasChanged ? 'bg-red-50 text-red-700' : 'bg-white text-gray-700' }}">
+                                                    {{ $originalValue }}
+                                                </td>
                                                 @endforeach
                                             </tr>
                                             <!-- New Values -->
                                             <tr>
                                                 @foreach($fields as $field => $value)
-                                                    @php
-                                                        $originalValue = $originalRecord ? $originalRecord->$field : 'N/A';
-                                                        if (is_array($originalValue) || is_object($originalValue)) {
-                                                            $originalValue = json_encode($originalValue);
-                                                        }
-                                                        if (is_array($value) || is_object($value)) {
-                                                            $value = json_encode($value);
-                                                        }
-                                                        $hasChanged = (string)$originalValue !== (string)$value;
-                                                    @endphp
-                                                    <td class="px-6 py-3 text-sm border-r last:border-r-0 {{ $hasChanged ? 'bg-green-50 text-green-700' : 'bg-white text-gray-700' }}">
-                                                        {{ $value }}
-                                                    </td>
+                                                @php
+                                                $originalValue = $originalRecord ? $originalRecord->$field : 'N/A';
+                                                if (is_array($originalValue) || is_object($originalValue)) {
+                                                $originalValue = json_encode($originalValue);
+                                                }
+                                                if (is_array($value) || is_object($value)) {
+                                                $value = json_encode($value);
+                                                }
+                                                $hasChanged = (string)$originalValue !== (string)$value;
+                                                @endphp
+                                                <td class="px-6 py-3 text-sm border-r last:border-r-0 {{ $hasChanged ? 'bg-green-50 text-green-700' : 'bg-white text-gray-700' }}">
+                                                    {{ $value }}
+                                                </td>
                                                 @endforeach
                                             </tr>
                                         </tbody>
@@ -111,16 +111,16 @@
                         <div class="mb-8">
                             <h4 class="text-md font-semibold mb-3 text-green-600">Additions</h4>
                             @php
-                                // Group additions by table type
-                                $groupedAdditions = [];
-                                foreach($changes['additions'] as $key => $data) {
-                                    $tableType = explode('-', $key)[1] ?? '';
-                                    $tableType = explode('_', $tableType)[0];
-                                    if (!isset($groupedAdditions[$tableType])) {
-                                        $groupedAdditions[$tableType] = [];
-                                    }
-                                    $groupedAdditions[$tableType][] = $data;
-                                }
+                            // Group additions by table type
+                            $groupedAdditions = [];
+                            foreach($changes['additions'] as $key => $data) {
+                            $tableType = explode('-', $key)[1] ?? '';
+                            $tableType = explode('_', $tableType)[0];
+                            if (!isset($groupedAdditions[$tableType])) {
+                            $groupedAdditions[$tableType] = [];
+                            }
+                            $groupedAdditions[$tableType][] = $data;
+                            }
                             @endphp
 
                             @foreach($groupedAdditions as $tableType => $additions)
@@ -130,13 +130,13 @@
                                     <table class="min-w-full divide-y divide-gray-200">
                                         <thead class="bg-gray-50">
                                             <tr>
-                                            @foreach($additions[0] as $field => $value)
+                                                @foreach($additions[0] as $field => $value)
                                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{{ $field }}</th>
-                                            @endforeach
+                                                @endforeach
                                             </tr>
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
-                                        @foreach($additions as $data)
+                                            @foreach($additions as $data)
                                             <tr>
                                                 @foreach($data as $field => $value)
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-sky-500">
@@ -152,7 +152,7 @@
                             @endforeach
                         </div>
                         @endif
-                        
+
                         <!--  -->
 
                         <!-- Deletions -->
@@ -192,6 +192,53 @@
                         @if(empty($changes['modifications']) && empty($changes['additions']) && empty($changes['deletions']))
                         <p class="text-gray-500 italic">No changes found.</p>
                         @endif
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- for comments sections -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mt-4">
+                <div class="p-6 text-gray-900 dark:text-gray-100">
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-4">Comments</h3>
+
+                        <!-- Existing Comments -->
+                        @if($changeRequest->comments->count() > 0)
+                        <div class="space-y-4 mb-6">
+                            @foreach($changeRequest->comments->sortBy('created_at') as $comment)
+                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-center">
+                                        <div class="font-medium text-gray-900 dark:text-gray-100">{{ $comment->user->name }}</div>
+                                        <span class="mx-2 text-gray-500">•</span>
+                                        <div class="text-sm text-gray-500">{{ $comment->created_at->diffForHumans() }}</div>
+                                    </div>
+                                </div>
+                                <p class="mt-2 text-gray-700 dark:text-gray-300">{{ $comment->content }}</p>
+                            </div>
+                            @endforeach
+                        </div>
+                        @endif
+
+                        <!-- Comment Form -->
+                        <form action="{{ route('change-requests.storeComment', $changeRequest) }}" method="POST" id="comment-form">
+                            @csrf
+                            <div class="mt-2">
+                                <textarea
+                                    name="content"
+                                    rows="3"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    placeholder="Add a comment..."
+                                    required></textarea>
+                            </div>
+                            <div class="mt-3">
+                                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                                    Submit Comment
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
