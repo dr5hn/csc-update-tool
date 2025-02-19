@@ -11,7 +11,7 @@
         @foreach ($countryData as $country)
         <tr class="" data-id="country_{{ $country->id }}">
             <td class="text-xs text-center">{{ $country->id }} <input type="hidden" name="id" value="{{ $country->id }}"></td>
-            <td class="px-1 py-1"><input type="text" name="" value="{{ $country->name }}" disabled></td>
+            <td class="px-1 py-1"><input type="text" name="name" value="{{ $country->name }}" disabled></td>
             <td class="px-1 py-1"><input type="text" name="iso3" value="{{ $country->iso3 }}" disabled></td>
             <td class="px-1 py-1"><input type="text" name="numeric_code" value="{{ $country->numeric_code }}" disabled></td>
             <td class="px-1 py-1"><input type="text" name="iso2" value="{{ $country->iso2 }}" disabled></td>
@@ -20,7 +20,7 @@
             <td class="px-1 py-1"><input type="text" name="currency" value="{{ $country->currency }}" disabled></td>
             <td class="px-1 py-1"><input type="text" name="currency_name" value="{{ $country->currency_name }}" disabled></td>
             <td class="px-1 py-1"><input type="text" name="currency_symbol" value="{{ $country->currency_symbol }}" disabled></td>
-            <td class="px-1 py-1"><input type="text" name="tId" value="{{ $country->tld }}" disabled></td>
+            <td class="px-1 py-1"><input type="text" name="tld" value="{{ $country->tld }}" disabled></td>
             <td class="px-1 py-1"><input type="text" name="native" value="{{ $country->native }}" disabled></td>
             <td class="px-1 py-1"><input type="text" name="region" value="{{ $country->region }}" disabled></td>
             <td class="px-1 py-1"><input type="text" name="region_id" value="{{ $country->region_id }}" disabled></td>

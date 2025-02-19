@@ -21,6 +21,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{changeRequest}', [ChangeRequestController::class, 'show'])->name('show');
         Route::get('/{changeRequest}/edit', [ChangeRequestController::class, 'editDraft'])->name('edit');
         Route::post('/draft', [ChangeRequestController::class, 'storeDraft'])->name('storeDraft');
+        Route::post('/{changeRequest}/comments', [ChangeRequestController::class, 'storeComment'])->name('storeComment');
     });
 
     // Partial Routes
