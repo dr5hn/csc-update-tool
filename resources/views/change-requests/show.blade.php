@@ -26,15 +26,18 @@
                         </span>
                         <span class="text-gray-600">Created by: {{ $changeRequest->user->email }}</span>
                     </div>
+
                     @if(auth()->user()->is_admin && $changeRequest->status === 'pending')
                     <div class="flex space-x-4">
-                        <button type="button" class="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                        <button type="button" id="approve-request-btn"
+                            data-request-id="{{ $changeRequest->id }}" class="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-4 h-4 mr-2">
                                 <path d="M20 6 9 17l-5-5"></path>
                             </svg>
                             Approve
                         </button>
-                        <button type="button" class="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                        <button type="button" id="reject-request-btn"
+                            data-request-id="{{ $changeRequest->id }}" class="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x w-4 h-4 mr-2">
                                 <path d="M18 6 6 18"></path>
                                 <path d="m6 6 12 12"></path>
@@ -45,6 +48,56 @@
                     @endif
                 </div>
             </div>
+
+            @if($changeRequest->status === 'rejected' && $changeRequest->rejected_at)
+            <div class="bg-red-50 dark:bg-red-900/20 rounded-lg shadow-sm p-6 mb-6">
+                <div class="flex flex-col space-y-4">
+                    <!-- Header -->
+                    <div class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 text-red-600 dark:text-red-400 mr-2"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
+                        </svg>
+                        <h3 class="text-lg font-semibold text-red-700 dark:text-red-400">
+                            Request Rejected
+                        </h3>
+                    </div>
+
+                    <!-- Rejection Details -->
+                    <div class="pl-7">
+                        <!-- Rejection Metadata -->
+                        <div class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            Rejected by
+                            <span class="font-medium text-red-700 dark:text-red-400">
+                                {{ $changeRequest->rejectedby ?? 'Admin' }}
+                            </span>
+                            on
+                            <span class="font-medium text-red-700 dark:text-red-400">
+                                {{ $changeRequest->rejected_at}}
+                            </span>
+                        </div>
+
+                        <!-- Rejection Reason -->
+                        <div class="bg-white dark:bg-gray-800 rounded-md p-4 border border-red-200 dark:border-red-800">
+                            <h4 class="text-sm font-medium text-red-700 dark:text-red-400 mb-2">
+                                Reason for Rejection:
+                            </h4>
+                            <p class="text-gray-700 dark:text-gray-300">
+                                {{ $changeRequest->rejection_reason }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
 
             <!-- Description -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
@@ -82,6 +135,8 @@
                             class="py-2 px-4 font-medium border-transparent text-gray-500 hover:text-gray-700"
                             id="view-city-tab">Cities</button>
                     </div>
+
+
 
 
                     @php
@@ -335,4 +390,33 @@
             </div>
         </div>
     </div>
+
+
+    <x-modal name="reject-request-modal" :show="false">
+        <form id="reject-form" class="p-6">
+            <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+                Reject Change Request
+            </h2>
+
+            <div class="mb-4">
+                <label for="rejection-reason" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Reason for Rejection
+                </label>
+                <textarea id="rejection-reason"
+                    name="rejection_reason"
+                    rows="4"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    required></textarea>
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-3">
+                <x-secondary-button x-on:click="$dispatch('close')">
+                    Cancel
+                </x-secondary-button>
+                <x-primary-button type="submit">
+                    Submit Rejection
+                </x-primary-button>
+            </div>
+        </form>
+    </x-modal>
 </x-app-layout>

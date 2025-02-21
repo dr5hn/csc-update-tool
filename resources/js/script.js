@@ -259,22 +259,26 @@ $(function () {
             const data = {};
             let isValid = true;
             let emptyFields = [];
-        
+
             // Remove any existing error styling
             $row.find("input").removeClass("border-red-500");
-        
+
             // Collect data and validate
             $row.find("input").each(function () {
                 const $input = $(this);
                 const name = $input.attr("name");
                 const value = $input.val().trim();
                 data[name] = value;
-        
+
                 // Skip validation for id field and wikidataId field
-                if (name === "id" || name === "wikiDataId" || name === "wiki_data_id") {
+                if (
+                    name === "id" ||
+                    name === "wikiDataId" ||
+                    name === "wiki_data_id"
+                ) {
                     return;
                 }
-        
+
                 // Validate fields for both new and edited rows
                 if (value === "") {
                     isValid = false;
@@ -282,7 +286,7 @@ $(function () {
                     $input.addClass("border-red-500");
                 }
             });
-        
+
             // Show error message if validation fails
             if (!isValid) {
                 const fieldNames = emptyFields
@@ -292,18 +296,18 @@ $(function () {
                 console.log(field);
                 return false;
             }
-        
+
             // Proceed with saving if validation passes
             if (!id.startsWith("added-") && this.hasChanged($row)) {
                 this.store.setItem(id, JSON.stringify(data));
                 $row.addClass("changed-row");
             }
-        
+
             if (id.startsWith("added-")) {
                 this.store.setItem(id, JSON.stringify(data));
                 $row.addClass("added-row");
             }
-        
+
             return true;
         },
 
@@ -1065,5 +1069,80 @@ $(function () {
     const showPage = $("#view-table-tabs");
     if (showPage) {
         loadShowPageData();
+    }
+
+    // Add these functions to your script.js file
+
+    function handleApproveReject() {
+        // Handle approve button click
+        $("#approve-request-btn").on("click", function () {
+            const changeRequestId = $(this).data("request-id");
+
+            if (
+                confirm("Are you sure you want to approve this change request?")
+            ) {
+                $.ajax({
+                    url: `/change-requests/${changeRequestId}/approve`,
+                    method: "POST",
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr("content"),
+                    },
+                    success: function (response) {
+                        alert(response.message);
+                        if (response.redirect) {
+                            window.location.href = response.redirect;
+                        }
+                    },
+                    error: function (error) {
+                        const errorMessage =
+                            error.responseJSON?.message ||
+                            "Unknown error occurred";
+                        alert("Error: " + errorMessage);
+                    },
+                });
+            }
+        });
+
+        // Handle reject button click
+        $('#reject-request-btn').on('click', function() {
+            const changeRequestId = $(this).data('request-id');
+            
+            // Show rejection reason modal
+            window.dispatchEvent(new CustomEvent('open-modal', {
+                detail: 'reject-request-modal'
+            }));
+    
+            // Handle rejection form submission
+            $('#reject-form').off('submit').on('submit', function(e) {
+                e.preventDefault();
+                
+                $.ajax({
+                    url: `/change-requests/${changeRequestId}/reject`,
+                    method: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        rejection_reason: $('#rejection-reason').val()
+                    },
+                    success: function(response) {
+                        window.dispatchEvent(new CustomEvent('close-modal', {
+                            detail: 'reject-request-modal'
+                        }));
+                        alert(response.message);
+                        if (response.redirect) {
+                            window.location.href = response.redirect;
+                        }
+                    },
+                    error: function(error) {
+                        const errorMessage = error.responseJSON?.message || 'Unknown error occurred';
+                        alert('Error: ' + errorMessage);
+                    }
+                });
+            });
+        });
+    }
+
+    // Initialize handlers when document is ready
+    if ($("#approve-request-btn").length) {
+        handleApproveReject();
     }
 });

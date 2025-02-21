@@ -9,24 +9,27 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\AdminChangeRequestNotification;
 use App\Services\SQLGeneratorService;
+use App\Models\User;
 
 class ChangeRequestController extends Controller
 {
 
     protected $sqlGenerator;
 
-    public function __construct(SQLGeneratorService $sqlGenerator) 
+    public function __construct(SQLGeneratorService $sqlGenerator)
     {
         $this->sqlGenerator = $sqlGenerator;
     }
 
-    public function exportSQL(ChangeRequest $changeRequest) 
+    public function exportSQL(ChangeRequest $changeRequest)
     {
         $changes = json_decode($changeRequest->new_data, true);
-        
+
         $result = $this->sqlGenerator->generate($changes);
-        
+
         if (!$result['success']) {
             return back()->with('error', 'Failed to generate SQL: ' . $result['error']);
         }
@@ -38,12 +41,12 @@ class ChangeRequestController extends Controller
         ]);
     }
 
-    public function downloadSQL(ChangeRequest $changeRequest) 
+    public function downloadSQL(ChangeRequest $changeRequest)
     {
         $changes = json_decode($changeRequest->new_data, true);
-        
+
         $result = $this->sqlGenerator->generate($changes);
-        
+
         if (!$result['success']) {
             return back()->with('error', 'Failed to generate SQL: ' . $result['error']);
         }
@@ -53,7 +56,8 @@ class ChangeRequestController extends Controller
         $sql .= "\n\n-- Rollback Migration\n\n";
         $sql .= $result['data']['down'];
 
-        $filename = sprintf('change_request_%d_%s.sql', 
+        $filename = sprintf(
+            'change_request_%d_%s.sql',
             $changeRequest->id,
             date('Y_m_d_His')
         );
@@ -357,13 +361,17 @@ class ChangeRequestController extends Controller
             }
 
             // Create new change request
-            ChangeRequest::create([
+            $changeRequest = ChangeRequest::create([
                 'user_id' => Auth::id(),
                 'title' => $validated['title'],
                 'description' => $validated['description'],
                 'new_data' => $validated['new_data'],
                 'status' => 'pending'
             ]);
+
+            // Send notification to all admin users
+            $adminUsers = User::where('is_admin', true)->get();
+            Notification::send($adminUsers, new AdminChangeRequestNotification($changeRequest));
 
             return response()->json([
                 'message' => 'Request submitted successfully',
@@ -433,48 +441,48 @@ class ChangeRequestController extends Controller
     {
         try {
             $user = Auth::user();
-            
+
             // Build base query with eager loading
             $query = ChangeRequest::with(['user', 'comments'])
                 ->withCount('comments')
                 ->orderBy('created_at', 'desc');
-    
+
             // If not admin, only show user's own requests
             if (!$user->is_admin) {
                 $query->where('user_id', $user->id);
             }
-    
+
             // Apply status filter
             if ($request->has('status') && $request->status !== 'all') {
                 $query->where('status', $request->status);
             }
-    
+
             // Apply search
             if ($request->has('search') && !empty($request->search)) {
                 $searchTerm = $request->search;
-                $query->where(function($q) use ($searchTerm) {
+                $query->where(function ($q) use ($searchTerm) {
                     $q->where('title', 'like', "%{$searchTerm}%")
-                      ->orWhere('description', 'like', "%{$searchTerm}%")
-                      ->orWhereHas('user', function($userQuery) use ($searchTerm) {
-                          $userQuery->where('name', 'like', "%{$searchTerm}%");
-                      });
+                        ->orWhere('description', 'like', "%{$searchTerm}%")
+                        ->orWhereHas('user', function ($userQuery) use ($searchTerm) {
+                            $userQuery->where('name', 'like', "%{$searchTerm}%");
+                        });
                 });
             }
-    
+
             // Handle per page setting
             $perPage = $request->input('per_page', 10);
             if (!in_array($perPage, [10, 25, 50])) {
                 $perPage = 10;
             }
-    
+
             // Get paginated results
             $changeRequests = $query->paginate($perPage)->withQueryString();
-    
+
             // Process tables affected for each request
-            $changeRequests->each(function($request) {
+            $changeRequests->each(function ($request) {
                 $request->affected_tables = $this->getAffectedTables($request->new_data);
             });
-    
+
             return view('change-requests.index', [
                 'changeRequests' => $changeRequests,
                 'filters' => [
@@ -483,13 +491,12 @@ class ChangeRequestController extends Controller
                     'per_page' => $perPage
                 ]
             ]);
-    
         } catch (\Exception $e) {
             Log::error('Error in change requests index: ' . $e->getMessage());
             throw $e;
         }
     }
-    
+
     /**
      * Get list of tables affected by a change request
      */
@@ -499,15 +506,15 @@ class ChangeRequestController extends Controller
             if (empty($newData)) {
                 return [];
             }
-    
+
             $changes = json_decode($newData, true);
             $tables = [];
-    
+
             // Check modifications
             if (!empty($changes['modifications'])) {
                 $tables = array_merge($tables, array_keys($changes['modifications']));
             }
-    
+
             // Check additions
             if (!empty($changes['additions'])) {
                 foreach ($changes['additions'] as $key => $value) {
@@ -518,7 +525,7 @@ class ChangeRequestController extends Controller
                     }
                 }
             }
-    
+
             // Check deletions
             if (!empty($changes['deletions'])) {
                 foreach ($changes['deletions'] as $deletion) {
@@ -528,9 +535,8 @@ class ChangeRequestController extends Controller
                     }
                 }
             }
-    
+
             return array_unique($tables);
-    
         } catch (\Exception $e) {
             Log::error('Error parsing affected tables: ' . $e->getMessage());
             return [];
@@ -576,6 +582,83 @@ class ChangeRequestController extends Controller
         return back();
     }
 
-   
-    
+    /**
+     * Approve a change request
+     */
+    public function approve(Request $request, ChangeRequest $changeRequest): JsonResponse
+    {
+        // Check if user is admin
+        if (!Auth::user()->is_admin) {
+            return response()->json([
+                'message' => 'Unauthorized action.'
+            ], 403);
+        }
+
+        // Check if request can be approved
+        if ($changeRequest->status !== 'pending') {
+            return response()->json([
+                'message' => 'Only pending requests can be approved.'
+            ], 422);
+        }
+
+        try {
+            $changeRequest->update([
+                'status' => 'approved',
+                'approved_by' => Auth::id(),
+                'approved_at' => now()
+            ]);
+
+            return response()->json([
+                'message' => 'Change request approved successfully.',
+                'redirect' => route('change-requests.index')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error approving request: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Reject a change request
+     */
+    public function reject(Request $request, ChangeRequest $changeRequest): JsonResponse
+    {
+        // Check if user is admin
+        if (!Auth::user()->is_admin) {
+            return response()->json([
+                'message' => 'Unauthorized action.'
+            ], 403);
+        }
+
+        // Check if request can be rejected
+        if ($changeRequest->status !== 'pending') {
+            return response()->json([
+                'message' => 'Only pending requests can be rejected.'
+            ], 422);
+        }
+
+        // Validate rejection reason
+        $validated = $request->validate([
+            'rejection_reason' => 'required|string|max:1000'
+        ]);
+
+        try {
+            $changeRequest->update([
+                'status' => 'rejected',
+                'rejection_reason' => $validated['rejection_reason'],
+                'rejected_by' => Auth::id(),
+                'rejected_at' => now()
+            ]);
+
+            return response()->json([
+                'message' => 'Change request rejected successfully.',
+                'redirect' => route('change-requests.index')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error rejecting request: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

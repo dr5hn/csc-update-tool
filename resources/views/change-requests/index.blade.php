@@ -88,9 +88,6 @@
                                             Title
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Description
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                             Tables
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -115,9 +112,6 @@
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                                             {{ $request->title }}
-                                        </td>
-                                        <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                                            {{ Str::limit($request->description, 50) }}
                                         </td>
                                         <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                                             {{ implode(', ', array_map('ucfirst', $request->affected_tables)) }}
@@ -154,19 +148,6 @@
                                                class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
                                                 View
                                             </a>
-                                            
-                                            @if(auth()->user()->is_admin && $request->status === 'pending')
-                                                <button type="button"
-                                                        onclick="approveRequest('{{ $request->id }}')"
-                                                        class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300">
-                                                    Approve
-                                                </button>
-                                                <button type="button"
-                                                        onclick="rejectRequest('{{ $request->id }}')"
-                                                        class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
-                                                    Reject
-                                                </button>
-                                            @endif
 
                                             @if($request->status === 'draft' && $request->user_id === auth()->id())
                                                 <a href="{{ route('change-requests.edit', $request->id) }}"
@@ -194,20 +175,4 @@
             </div>
         </div>
     </div>
-
-    @push('scripts')
-    <script>
-        function approveRequest(id) {
-            if (confirm('Are you sure you want to approve this request?')) {
-                // Add approval logic here
-            }
-        }
-
-        function rejectRequest(id) {
-            if (confirm('Are you sure you want to reject this request?')) {
-                // Add rejection logic here
-            }
-        }
-    </script>
-    @endpush
 </x-app-layout>

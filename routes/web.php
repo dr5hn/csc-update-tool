@@ -26,6 +26,10 @@ Route::middleware('auth')->group(function () {
             ->name('sql');
         Route::get('/{changeRequest}/sql/download', [ChangeRequestController::class, 'downloadSQL'])
             ->name('sql.download');
+        Route::post('/{changeRequest}/approve', [ChangeRequestController::class, 'approve'])
+            ->name('approve');
+        Route::post('/{changeRequest}/reject', [ChangeRequestController::class, 'reject'])
+            ->name('reject');
     });
 
     // Partial Routes
