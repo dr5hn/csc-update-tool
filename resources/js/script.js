@@ -257,20 +257,54 @@ $(function () {
             const $row = $(row);
             const id = $row.data("id");
             const data = {};
-
+            let isValid = true;
+            let emptyFields = [];
+        
+            // Remove any existing error styling
+            $row.find("input").removeClass("border-red-500");
+        
+            // Collect data and validate
             $row.find("input").each(function () {
-                data[$(this).attr("name")] = $(this).val();
+                const $input = $(this);
+                const name = $input.attr("name");
+                const value = $input.val().trim();
+                data[name] = value;
+        
+                // Skip validation for id field and wikidataId field
+                if (name === "id" || name === "wikiDataId" || name === "wiki_data_id") {
+                    return;
+                }
+        
+                // Validate fields for both new and edited rows
+                if (value === "") {
+                    isValid = false;
+                    emptyFields.push(name);
+                    $input.addClass("border-red-500");
+                }
             });
-
+        
+            // Show error message if validation fails
+            if (!isValid) {
+                const fieldNames = emptyFields
+                    .map((field) => field.replace(/_/g, " "))
+                    .join(", ");
+                alert(`Please fill in all required fields: ${fieldNames}`);
+                console.log(field);
+                return false;
+            }
+        
+            // Proceed with saving if validation passes
             if (!id.startsWith("added-") && this.hasChanged($row)) {
                 this.store.setItem(id, JSON.stringify(data));
                 $row.addClass("changed-row");
             }
-
-            if (id.startsWith("added-") && !this.isEmpty($row)) {
+        
+            if (id.startsWith("added-")) {
                 this.store.setItem(id, JSON.stringify(data));
                 $row.addClass("added-row");
             }
+        
+            return true;
         },
 
         delete(row) {
@@ -526,16 +560,15 @@ $(function () {
                 $row.find(".save-btn").removeClass("hidden");
             } else if ($btn.hasClass("save-btn")) {
                 const $inputs = $row.find("input");
-                $inputs.prop("disabled", true).off("input");
 
-                if (!RowManager.hasChanged($row)) {
-                    $row.removeClass("changed-row");
+                if (RowManager.save($row)) {
+                    $inputs.prop("disabled", true).off("input");
+                    if (!RowManager.hasChanged($row)) {
+                        $row.removeClass("changed-row");
+                    }
+                    $btn.addClass("hidden");
+                    $row.find(".edit-btn").removeClass("hidden");
                 }
-
-                RowManager.save($row);
-
-                $btn.addClass("hidden");
-                $row.find(".edit-btn").removeClass("hidden");
             } else if ($btn.hasClass("delete-btn")) {
                 RowManager.delete($row);
             } else if ($btn.hasClass("undo-btn")) {
@@ -980,5 +1013,57 @@ $(function () {
         });
 
         return changes;
+    }
+
+    function loadShowPageData() {
+        const tabButtons = $("#view-table-tabs button");
+        // Get all content sections
+        const modifications = $("[data-table-content]");
+
+        // Function to show content for selected table
+        function showTableContent(tableType) {
+            // Hide all content first
+            modifications.each(function () {
+                const sectionTable = $(this).attr("data-table-content");
+                if (sectionTable === tableType) {
+                    $(this).removeClass("hidden");
+                } else {
+                    $(this).addClass("hidden");
+                }
+            });
+        }
+
+        // Add click handlers to tab buttons
+        tabButtons.each(function () {
+            $(this).on("click", function () {
+                // Remove active class from all buttons
+                tabButtons.removeClass("active-tab");
+                tabButtons.removeClass("text-blue-600");
+                tabButtons.addClass("text-gray-500");
+
+                // Add active class to clicked button
+                $(this).addClass("active-tab");
+                $(this).addClass("text-blue-600");
+                $(this).removeClass("text-gray-500");
+
+                // Get the table type from button ID
+                const tableType = this.id
+                    .replace("view-", "")
+                    .replace("-tab", "");
+
+                // Show content for selected table
+                showTableContent(tableType);
+            });
+        });
+
+        // Initialize with first tab active
+        if (tabButtons.length > 0) {
+            tabButtons[0].click();
+        }
+    }
+
+    const showPage = $("#view-table-tabs");
+    if (showPage) {
+        loadShowPageData();
     }
 });

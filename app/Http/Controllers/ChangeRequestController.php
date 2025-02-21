@@ -9,9 +9,61 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
+use App\Services\SQLGeneratorService;
 
 class ChangeRequestController extends Controller
 {
+
+    protected $sqlGenerator;
+
+    public function __construct(SQLGeneratorService $sqlGenerator) 
+    {
+        $this->sqlGenerator = $sqlGenerator;
+    }
+
+    public function exportSQL(ChangeRequest $changeRequest) 
+    {
+        $changes = json_decode($changeRequest->new_data, true);
+        
+        $result = $this->sqlGenerator->generate($changes);
+        
+        if (!$result['success']) {
+            return back()->with('error', 'Failed to generate SQL: ' . $result['error']);
+        }
+
+        return view('change-requests.sql', [
+            'changeRequest' => $changeRequest,
+            'forwardSQL' => $result['data']['up'],
+            'rollbackSQL' => $result['data']['down']
+        ]);
+    }
+
+    public function downloadSQL(ChangeRequest $changeRequest) 
+    {
+        $changes = json_decode($changeRequest->new_data, true);
+        
+        $result = $this->sqlGenerator->generate($changes);
+        
+        if (!$result['success']) {
+            return back()->with('error', 'Failed to generate SQL: ' . $result['error']);
+        }
+
+        $sql = "-- Forward Migration\n\n";
+        $sql .= $result['data']['up'];
+        $sql .= "\n\n-- Rollback Migration\n\n";
+        $sql .= $result['data']['down'];
+
+        $filename = sprintf('change_request_%d_%s.sql', 
+            $changeRequest->id,
+            date('Y_m_d_His')
+        );
+
+        return response($sql)
+            ->header('Content-Type', 'text/plain')
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+    }
+
+
     /**
      * Display the change request form with all necessary data
      */
@@ -377,25 +429,111 @@ class ChangeRequestController extends Controller
         return view('change-requests.show', compact('changeRequest'));
     }
 
-    public function index(): View
+    public function index(Request $request): View
     {
         try {
             $user = Auth::user();
-
-            $query = ChangeRequest::with('user')
+            
+            // Build base query with eager loading
+            $query = ChangeRequest::with(['user', 'comments'])
+                ->withCount('comments')
                 ->orderBy('created_at', 'desc');
-
+    
             // If not admin, only show user's own requests
             if (!$user->is_admin) {
                 $query->where('user_id', $user->id);
             }
-
-            $changeRequests = $query->paginate(10);
-
-            return view('change-requests.index', compact('changeRequests'));
+    
+            // Apply status filter
+            if ($request->has('status') && $request->status !== 'all') {
+                $query->where('status', $request->status);
+            }
+    
+            // Apply search
+            if ($request->has('search') && !empty($request->search)) {
+                $searchTerm = $request->search;
+                $query->where(function($q) use ($searchTerm) {
+                    $q->where('title', 'like', "%{$searchTerm}%")
+                      ->orWhere('description', 'like', "%{$searchTerm}%")
+                      ->orWhereHas('user', function($userQuery) use ($searchTerm) {
+                          $userQuery->where('name', 'like', "%{$searchTerm}%");
+                      });
+                });
+            }
+    
+            // Handle per page setting
+            $perPage = $request->input('per_page', 10);
+            if (!in_array($perPage, [10, 25, 50])) {
+                $perPage = 10;
+            }
+    
+            // Get paginated results
+            $changeRequests = $query->paginate($perPage)->withQueryString();
+    
+            // Process tables affected for each request
+            $changeRequests->each(function($request) {
+                $request->affected_tables = $this->getAffectedTables($request->new_data);
+            });
+    
+            return view('change-requests.index', [
+                'changeRequests' => $changeRequests,
+                'filters' => [
+                    'status' => $request->status ?? 'all',
+                    'search' => $request->search ?? '',
+                    'per_page' => $perPage
+                ]
+            ]);
+    
         } catch (\Exception $e) {
             Log::error('Error in change requests index: ' . $e->getMessage());
             throw $e;
+        }
+    }
+    
+    /**
+     * Get list of tables affected by a change request
+     */
+    private function getAffectedTables(?string $newData): array
+    {
+        try {
+            if (empty($newData)) {
+                return [];
+            }
+    
+            $changes = json_decode($newData, true);
+            $tables = [];
+    
+            // Check modifications
+            if (!empty($changes['modifications'])) {
+                $tables = array_merge($tables, array_keys($changes['modifications']));
+            }
+    
+            // Check additions
+            if (!empty($changes['additions'])) {
+                foreach ($changes['additions'] as $key => $value) {
+                    $table = explode('-', $key)[1] ?? '';
+                    $table = explode('_', $table)[0];
+                    if (!empty($table) && !in_array($table, $tables)) {
+                        $tables[] = $table;
+                    }
+                }
+            }
+    
+            // Check deletions
+            if (!empty($changes['deletions'])) {
+                foreach ($changes['deletions'] as $deletion) {
+                    $table = explode('_', $deletion)[0];
+                    if (!empty($table) && !in_array($table, $tables)) {
+                        $tables[] = $table;
+                    }
+                }
+            }
+    
+            return array_unique($tables);
+    
+        } catch (\Exception $e) {
+            Log::error('Error parsing affected tables: ' . $e->getMessage());
+            return [];
         }
     }
 
@@ -437,5 +575,7 @@ class ChangeRequestController extends Controller
 
         return back();
     }
+
+   
     
 }
