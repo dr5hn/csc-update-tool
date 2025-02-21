@@ -2,7 +2,7 @@
     <thead class="bg-gray-100">
         <tr>
             @foreach ($regionHeaders as $header)
-            <th class="px-1 py-1 text-xs font-medium text-gray-500">{{ $header }}</th>
+            <th class="px-1 py-1 text-xs font-medium text-gray-500" >{{ $header }}</th>
             @endforeach
             <th class="px-1 py-1 text-xs font-medium text-gray-500">Actions</th>
         </tr>
