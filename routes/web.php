@@ -13,14 +13,23 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-     // Change Request routes
-     Route::prefix('change-requests')->name('change-requests.')->group(function () {
+    // Change Request routes
+    Route::prefix('change-requests')->name('change-requests.')->group(function () {
         Route::get('/', [ChangeRequestController::class, 'index'])->name('index');
         Route::get('/new', [ChangeRequestController::class, 'changeRequest'])->name('new');
         Route::post('/', [ChangeRequestController::class, 'store'])->name('store');
         Route::get('/{changeRequest}', [ChangeRequestController::class, 'show'])->name('show');
         Route::get('/{changeRequest}/edit', [ChangeRequestController::class, 'editDraft'])->name('edit');
         Route::post('/draft', [ChangeRequestController::class, 'storeDraft'])->name('storeDraft');
+        Route::post('/{changeRequest}/comments', [ChangeRequestController::class, 'storeComment'])->name('storeComment');
+        Route::get('/{changeRequest}/sql', [ChangeRequestController::class, 'exportSQL'])
+            ->name('sql');
+        Route::get('/{changeRequest}/sql/download', [ChangeRequestController::class, 'downloadSQL'])
+            ->name('sql.download');
+        Route::post('/{changeRequest}/approve', [ChangeRequestController::class, 'approve'])
+            ->name('approve');
+        Route::post('/{changeRequest}/reject', [ChangeRequestController::class, 'reject'])
+            ->name('reject');
     });
 
     // Partial Routes
@@ -33,4 +42,4 @@ Route::middleware('auth')->group(function () {
     Route::get('/regions', [ChangeRequestController::class, 'getRegions'])->name('regions');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

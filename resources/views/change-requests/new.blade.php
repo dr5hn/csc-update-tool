@@ -1,8 +1,14 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight" id="form-title">
-            Database Changes Request - Regions
-        </h2>
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight" id="form-title">
+                Database Changes Request - Regions
+            </h2>
+            <a href="{{ route('change-requests.index') }}"
+                class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
+                Back to List
+            </a>
+        </div>
     </x-slot>
 
     <div class="py-8">
@@ -68,64 +74,21 @@
                                 <select class="w-full p-2 border rounded-md" id="countries-select">
                                     <option value="" disabled>All Countries</option>
                                     @foreach ($countryData as $country)
-                                        <option value="{{ $country->id }}">{{ $country->name }}</option>
+                                    <option value="{{ $country->id }}">{{ $country->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
                             <div class="mb-6 w-1/4" id="states-dropdown" style="display:none;">
                                 @include('change-requests.partials.states-dropdown', [
-                                    'states' => $stateData,
+                                'states' => $stateData,
                                 ])
                             </div>
                         </div>
                     </div>
 
-
-
-                    <!-- Regions Table -->
-                    <div class="overflow-x-auto mt-1" id="regions-table">
-                        @include('change-requests.partials.regions', [
-                            'regionData' => $regionData,
-                            'regionHeaders' => $regionHeaders,
-                        ])
-                    </div>
-
-                    <!-- Subregions Table -->
-                    <div class="overflow-x-auto mt-8" id="subregions-table">
-                        @include('change-requests.partials.subregions', [
-                            'subregionData' => $subregionData,
-                            'subregionHeaders' => $subregionHeaders,
-                        ])
-                    </div>
-
-
-                    <!-- Countries Table -->
-                    <div class="overflow-x-auto mt-8" id="countries-table">
-                        @include('change-requests.partials.countries', [
-                            'countryData' => $countryData,
-                            'countryHeaders' => $countryHeaders,
-                        ])
-                    </div>
-
-                    <!-- States Table -->
-                    <div class="overflow-x-auto mt-8" id="states-table">
-                        @include('change-requests.partials.states', [
-                            'stateData' => $stateData,
-                            'stateHeaders' => $stateHeaders,
-                        ])
-                    </div>
-
-                    <!-- Cities Table -->
-                    <div class="overflow-x-auto mt-8" id="cities-table">
-                        @include('change-requests.partials.cities', [
-                            'cityData' => $cityData,
-                            'cityHeaders' => $cityHeaders,
-                        ])
-                    </div>
-
                     <!-- Add Row Button -->
                     <div class="flex justify-start mb-4">
-                        <button type="button" id="add-row-btn" class="mt-4 flex items-center text-blue-600">
+                        <button type="button" id="add-row-btn" class="add-row-btn flex items-center text-blue-600">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                 stroke-linejoin="round" class="lucide lucide-plus w-4 h-4 mr-1">
@@ -135,19 +98,78 @@
                             Add New Row</button>
                     </div>
 
-                    <div class="flex justify-end mt-6 space-x-3">
-                        <button type="button" id="save-draft-btn"
-                            class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600">
-                            Save Draft
-                        </button>
-                        <button type="button" id="review-changes-btn"
-                            class="bg-yellow-500 text-white px-6 py-2 rounded-lg hover:bg-yellow-600">
-                            Review Changes
-                        </button>
-                        <button type="submit" id="change-request-submit"
-                            class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
-                            Submit Changes
-                        </button>
+
+
+                    <!-- Regions Table -->
+                    <div class="overflow-x-auto mt-8" id="regions-table">
+                        @include('change-requests.partials.regions', [
+                        'regionData' => $regionData,
+                        'regionHeaders' => $regionHeaders,
+                        ])
+                    </div>
+
+                    <!-- Subregions Table -->
+                    <div class="overflow-x-auto mt-8" id="subregions-table">
+                        @include('change-requests.partials.subregions', [
+                        'subregionData' => $subregionData,
+                        'subregionHeaders' => $subregionHeaders,
+                        ])
+                    </div>
+
+
+                    <!-- Countries Table -->
+                    <div class="overflow-x-auto mt-8" id="countries-table">
+                        @include('change-requests.partials.countries', [
+                        'countryData' => $countryData,
+                        'countryHeaders' => $countryHeaders,
+                        ])
+                    </div>
+
+                    <!-- States Table -->
+                    <div class="overflow-x-auto mt-8" id="states-table">
+                        @include('change-requests.partials.states', [
+                        'stateData' => $stateData,
+                        'stateHeaders' => $stateHeaders,
+                        ])
+                    </div>
+
+                    <!-- Cities Table -->
+                    <div class="overflow-x-auto mt-8" id="cities-table">
+                        @include('change-requests.partials.cities', [
+                        'cityData' => $cityData,
+                        'cityHeaders' => $cityHeaders,
+                        ])
+                    </div>
+
+                    <!-- Add Row Button -->
+                    <div class="flex justify-start mb-4">
+                        <button type="button" id="add-row-btn" class="add-row-btn mt-4 flex items-center text-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-plus w-4 h-4 mr-1">
+                                <path d="M5 12h14"></path>
+                                <path d="M12 5v14"></path>
+                            </svg>
+                            Add New Row</button>
+                    </div>
+
+        
+                    <!-- Sticky buttons container -->
+                    <div class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-gray-200 shadow-lg z-50 transition-all duration-300">
+                        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-end space-x-3">
+                            <button type="button" id="save-draft-btn"
+                                class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors duration-200">
+                                Save Draft
+                            </button>
+                            <button type="button" id="review-changes-btn"
+                                class="bg-yellow-500 text-white px-6 py-2 rounded-lg hover:bg-yellow-600 transition-colors duration-200">
+                                Review Changes
+                            </button>
+                            <button type="submit" id="change-request-submit"
+                                class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                                Submit Changes
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
