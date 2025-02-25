@@ -9,8 +9,11 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\AdminChangeRequestNotification;
+use App\Notifications\ChangeRequestStatusNotification;
+use App\Notifications\CommentNotification;
 use App\Services\SQLGeneratorService;
 use App\Models\User;
 
@@ -568,18 +571,65 @@ class ChangeRequestController extends Controller
         return view('change-requests.edit', $formattedData);
     }
 
+    // public function storeComment(Request $request, ChangeRequest $changeRequest): RedirectResponse
+    // {
+    //     $validated = $request->validate([
+    //         'content' => 'required|string|max:1000',
+    //     ]);
+
+    //     $changeRequest->comments()->create([
+    //         'content' => $validated['content'],
+    //         'user_id' => Auth::id(),
+    //     ]);
+
+    //     return back();
+    // }
+
     public function storeComment(Request $request, ChangeRequest $changeRequest): RedirectResponse
     {
         $validated = $request->validate([
             'content' => 'required|string|max:1000',
         ]);
 
-        $changeRequest->comments()->create([
+        $comment = $changeRequest->comments()->create([
             'content' => $validated['content'],
             'user_id' => Auth::id(),
         ]);
 
-        return back();
+        try {
+            // Determine the notification recipients
+            $currentUser = Auth::user();
+            $recipients = collect();
+
+            // If commenter is the change request creator, notify all admins
+            if ($currentUser->id === $changeRequest->user_id) {
+                $recipients = User::where('is_admin', true)
+                    ->where('id', '!=', $currentUser->id) // Don't notify yourself
+                    ->get();
+            } 
+            // If commenter is an admin, notify the change request creator (unless the admin is the creator)
+            elseif ($currentUser->is_admin && $currentUser->id !== $changeRequest->user_id) {
+                $recipients = User::where('id', $changeRequest->user_id)->get();
+            }
+            // If commenter is neither admin nor creator, notify both admins and creator
+            else {
+                $recipients = User::where(function($query) use ($changeRequest) {
+                    $query->where('id', $changeRequest->user_id)
+                        ->orWhere('is_admin', true);
+                })->where('id', '!=', Auth::id()) // Don't notify yourself
+                  ->get();
+            }
+
+            // Send notifications
+            if ($recipients->isNotEmpty()) {
+                Notification::send($recipients, new CommentNotification($comment));
+            }
+
+            return back()->with('status', 'Comment added successfully');
+        } catch (\Exception $e) {
+            Log::error('Error sending comment notifications: ' . $e->getMessage());
+            return back()->with('status', 'Comment added successfully, but there was an issue sending notifications');
+        }
     }
 
     /**
@@ -602,11 +652,21 @@ class ChangeRequestController extends Controller
         }
 
         try {
+            // DB::transaction(function () use ($changeRequest) {
             $changeRequest->update([
                 'status' => 'approved',
                 'approved_by' => Auth::id(),
                 'approved_at' => now()
             ]);
+
+            //Send notification to the user
+            $changeRequest->user->notify(new ChangeRequestStatusNotification(
+                $changeRequest,
+                'approved'
+            ));
+         // });
+
+        
 
             return response()->json([
                 'message' => 'Change request approved successfully.',
@@ -650,6 +710,13 @@ class ChangeRequestController extends Controller
                 'rejected_by' => Auth::id(),
                 'rejected_at' => now()
             ]);
+
+            // Send notification to the user
+            $changeRequest->user->notify(new ChangeRequestStatusNotification(
+                $changeRequest,
+                'rejected',
+                $validated['rejection_reason']
+            ));
 
             return response()->json([
                 'message' => 'Change request rejected successfully.',
