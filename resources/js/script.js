@@ -19,7 +19,7 @@ $(function () {
     const $tableTabs = $("#table-tabs button");
     const $formTitle = $("#form-title");
     const $actions = $("#actions");
-    const $addRowBtn = $("#add-row-btn");
+    const $addRowBtn = $(".add-row-btn");
 
     // Initial state
     const initialState = {
@@ -257,20 +257,58 @@ $(function () {
             const $row = $(row);
             const id = $row.data("id");
             const data = {};
+            let isValid = true;
+            let emptyFields = [];
 
+            // Remove any existing error styling
+            $row.find("input").removeClass("border-red-500");
+
+            // Collect data and validate
             $row.find("input").each(function () {
-                data[$(this).attr("name")] = $(this).val();
+                const $input = $(this);
+                const name = $input.attr("name");
+                const value = $input.val().trim();
+                data[name] = value;
+
+                // Skip validation for id field and wikidataId field
+                if (
+                    name === "id" ||
+                    name === "wikiDataId" ||
+                    name === "wiki_data_id"
+                ) {
+                    return;
+                }
+
+                // Validate fields for both new and edited rows
+                if (value === "") {
+                    isValid = false;
+                    emptyFields.push(name);
+                    $input.addClass("border-red-500");
+                }
             });
 
+            // Show error message if validation fails
+            if (!isValid) {
+                const fieldNames = emptyFields
+                    .map((field) => field.replace(/_/g, " "))
+                    .join(", ");
+                alert(`Please fill in all required fields: ${fieldNames}`);
+                console.log(field);
+                return false;
+            }
+
+            // Proceed with saving if validation passes
             if (!id.startsWith("added-") && this.hasChanged($row)) {
                 this.store.setItem(id, JSON.stringify(data));
                 $row.addClass("changed-row");
             }
 
-            if (id.startsWith("added-") && !this.isEmpty($row)) {
+            if (id.startsWith("added-")) {
                 this.store.setItem(id, JSON.stringify(data));
                 $row.addClass("added-row");
             }
+
+            return true;
         },
 
         delete(row) {
@@ -463,6 +501,36 @@ $(function () {
 
         $tableBody.append($newRow);
 
+        // Scroll to the newly added row with offset for header visibility
+        setTimeout(() => {
+            const headerHeight = $(".bg-white").first().outerHeight() || 0;
+            const tableHeaderHeight =
+                $(activeTable).find("thead").outerHeight() || 0;
+            const totalOffset = headerHeight + tableHeaderHeight + 20; // Adding extra padding
+
+            const rowPosition = $newRow.offset().top - totalOffset;
+
+            $("html, body").animate(
+                {
+                    scrollTop: rowPosition,
+                },
+                {
+                    duration: 500,
+                    easing: "swing",
+                    complete: function () {
+                        // Flash effect on the new row
+                        $newRow
+                            .css("backgroundColor", "#e5e7eb")
+                            .delay(200)
+                            .queue(function (next) {
+                                $(this).css("backgroundColor", "");
+                                next();
+                            });
+                    },
+                }
+            );
+        }, 100);
+
         // Also store original data for new rows right after they're added
         const originalAddNewRow = addNewRow;
         addNewRow = function (newId = false) {
@@ -496,16 +564,15 @@ $(function () {
                 $row.find(".save-btn").removeClass("hidden");
             } else if ($btn.hasClass("save-btn")) {
                 const $inputs = $row.find("input");
-                $inputs.prop("disabled", true).off("input");
 
-                if (!RowManager.hasChanged($row)) {
-                    $row.removeClass("changed-row");
+                if (RowManager.save($row)) {
+                    $inputs.prop("disabled", true).off("input");
+                    if (!RowManager.hasChanged($row)) {
+                        $row.removeClass("changed-row");
+                    }
+                    $btn.addClass("hidden");
+                    $row.find(".edit-btn").removeClass("hidden");
                 }
-
-                RowManager.save($row);
-
-                $btn.addClass("hidden");
-                $row.find(".edit-btn").removeClass("hidden");
             } else if ($btn.hasClass("delete-btn")) {
                 RowManager.delete($row);
             } else if ($btn.hasClass("undo-btn")) {
@@ -950,5 +1017,132 @@ $(function () {
         });
 
         return changes;
+    }
+
+    function loadShowPageData() {
+        const tabButtons = $("#view-table-tabs button");
+        // Get all content sections
+        const modifications = $("[data-table-content]");
+
+        // Function to show content for selected table
+        function showTableContent(tableType) {
+            // Hide all content first
+            modifications.each(function () {
+                const sectionTable = $(this).attr("data-table-content");
+                if (sectionTable === tableType) {
+                    $(this).removeClass("hidden");
+                } else {
+                    $(this).addClass("hidden");
+                }
+            });
+        }
+
+        // Add click handlers to tab buttons
+        tabButtons.each(function () {
+            $(this).on("click", function () {
+                // Remove active class from all buttons
+                tabButtons.removeClass("active-tab");
+                tabButtons.removeClass("text-blue-600");
+                tabButtons.addClass("text-gray-500");
+
+                // Add active class to clicked button
+                $(this).addClass("active-tab");
+                $(this).addClass("text-blue-600");
+                $(this).removeClass("text-gray-500");
+
+                // Get the table type from button ID
+                const tableType = this.id
+                    .replace("view-", "")
+                    .replace("-tab", "");
+
+                // Show content for selected table
+                showTableContent(tableType);
+            });
+        });
+
+        // Initialize with first tab active
+        if (tabButtons.length > 0) {
+            tabButtons[0].click();
+        }
+    }
+
+    const showPage = $("#view-table-tabs");
+    if (showPage) {
+        loadShowPageData();
+    }
+
+    // Add these functions to your script.js file
+
+    function handleApproveReject() {
+        // Handle approve button click
+        $("#approve-request-btn").on("click", function () {
+            const changeRequestId = $(this).data("request-id");
+
+            if (
+                confirm("Are you sure you want to approve this change request?")
+            ) {
+                $.ajax({
+                    url: `/change-requests/${changeRequestId}/approve`,
+                    method: "POST",
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr("content"),
+                    },
+                    success: function (response) {
+                        alert(response.message);
+                        if (response.redirect) {
+                            window.location.href = response.redirect;
+                        }
+                    },
+                    error: function (error) {
+                        const errorMessage =
+                            error.responseJSON?.message ||
+                            "Unknown error occurred";
+                        alert("Error: " + errorMessage);
+                    },
+                });
+            }
+        });
+
+        // Handle reject button click
+        $('#reject-request-btn').on('click', function() {
+            const changeRequestId = $(this).data('request-id');
+            
+            // Show rejection reason modal
+            window.dispatchEvent(new CustomEvent('open-modal', {
+                detail: 'reject-request-modal'
+            }));
+    
+            // Handle rejection form submission
+            $('#reject-form').off('submit').on('submit', function(e) {
+                e.preventDefault();
+                
+                $.ajax({
+                    url: `/change-requests/${changeRequestId}/reject`,
+                    method: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        rejection_reason: $('#rejection-reason').val()
+                    },
+                    success: function(response) {
+                        window.dispatchEvent(new CustomEvent('close-modal', {
+                            detail: 'reject-request-modal'
+                        }));
+                        alert(response.message);
+                        if (response.redirect) {
+                            window.location.href = response.redirect;
+                        }
+                    },
+                    error: function(error) {
+                        const errorMessage = error.responseJSON?.message || 'Unknown error occurred';
+                        alert('Error: ' + errorMessage);
+                    }
+                });
+            });
+        });
+    }
+
+    // Initialize handlers when document is ready
+    if ($("#approve-request-btn").length) {
+        handleApproveReject();
     }
 });
