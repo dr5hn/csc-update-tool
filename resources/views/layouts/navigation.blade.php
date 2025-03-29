@@ -5,8 +5,11 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('change-requests.index') }}">
+                    <a href="{{ route('change-requests.index') }}" class="flex items-center">
                         <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
+                        <span class="text-2xl font-bold ml-2">
+                            {{ config('app.name') }}
+                        </span>
                     </a>
                 </div>
 
@@ -15,6 +18,18 @@
                     <x-nav-link :href="route('change-requests.index')" :active="request()->routeIs('change-requests.index')">
                         {{ __('Change Requests') }}
                     </x-nav-link>
+                    <x-nav-link :href="'https://demo.countrystatecity.in/'" :target="'_blank'" class="flex items-center">
+                        <span>{{ __('Data Explorer') }}</span>
+                        <svg class="w-[20px] ml-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none" stroke="currentColor"><path d="M388.364 242.764V421.455C388.364 432.738 383.881 443.56 375.902 451.539C367.924 459.518 357.102 464 345.818 464H90.5455C79.2617 464 68.4401 459.518 60.4613 451.539C52.4825 443.56 48 432.738 48 421.455V166.182C48 154.898 52.4825 144.076 60.4613 136.098C68.4401 128.119 79.2617 123.636 90.5455 123.636H269.236" stroke="currentColor" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"></path><path d="M464 180.364L464 48L331.636 48" stroke="currentColor" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"></path><path d="M216 296L464 48" stroke="currentColor" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    </x-nav-link>
+                    <x-nav-link :href="'https://countrystatecity.in/'" :target="'_blank'" class="flex items-center">
+                        <span>{{ __('API') }}</span>
+                        <svg class="w-[20px] ml-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none" stroke="currentColor"><path d="M388.364 242.764V421.455C388.364 432.738 383.881 443.56 375.902 451.539C367.924 459.518 357.102 464 345.818 464H90.5455C79.2617 464 68.4401 459.518 60.4613 451.539C52.4825 443.56 48 432.738 48 421.455V166.182C48 154.898 52.4825 144.076 60.4613 136.098C68.4401 128.119 79.2617 123.636 90.5455 123.636H269.236" stroke="currentColor" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"></path><path d="M464 180.364L464 48L331.636 48" stroke="currentColor" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"></path><path d="M216 296L464 48" stroke="currentColor" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    </x-nav-link>
+                    <x-nav-link :href="'https://github.com/dr5hn/countries-states-cities-database'" :target="'_blank'" class="flex items-center">
+                        <span>{{ __('GitHub') }}</span>
+                        <svg class="w-[20px] ml-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none" stroke="currentColor"><path d="M388.364 242.764V421.455C388.364 432.738 383.881 443.56 375.902 451.539C367.924 459.518 357.102 464 345.818 464H90.5455C79.2617 464 68.4401 459.518 60.4613 451.539C52.4825 443.56 48 432.738 48 421.455V166.182C48 154.898 52.4825 144.076 60.4613 136.098C68.4401 128.119 79.2617 123.636 90.5455 123.636H269.236" stroke="currentColor" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"></path><path d="M464 180.364L464 48L331.636 48" stroke="currentColor" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"></path><path d="M216 296L464 48" stroke="currentColor" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -22,7 +37,7 @@
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
+                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-base leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
                             <div>{{ Auth::user()->name }}</div>
 
                             <div class="ms-1">
