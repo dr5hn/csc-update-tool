@@ -42,7 +42,7 @@ return [
     'github' => [
         'client_id' => env('GITHUB_CLIENT_ID'),
         'client_secret' => env('GITHUB_CLIENT_SECRET'),
-        'redirect' => 'https://csc-update-tool.test/auth/github/callback',
+        'redirect' => env('GITHUB_REDIRECT_URI', 'https://csc-update-tool.localhost/auth/github/callback'),
     ],
 
 ];

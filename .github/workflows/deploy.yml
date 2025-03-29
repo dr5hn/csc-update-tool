@@ -1,0 +1,82 @@
+name: Deploy Application
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, zip, bcmath, intl, gd, curl, mysql
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-dev
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install NPM dependencies
+        run: npm install
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Add server to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        run: |
+          RELEASE_DIR="/var/www/csc-update-tool/releases/$(date +'%Y%m%d%H%M%S')"
+          SHARED_DIR="/var/www/csc-update-tool/shared"
+          CURRENT_DIR="/var/www/csc-update-tool/current"
+
+          # Create release directory
+          ssh root@${{ secrets.SERVER_IP }} "mkdir -p ${RELEASE_DIR}"
+
+          # Upload code
+          rsync -azP --exclude-from='.deployignore' ./ root@${{ secrets.SERVER_IP }}:${RELEASE_DIR}/
+
+          # Create symlinks to shared files
+          ssh root@${{ secrets.SERVER_IP }} "
+            ln -sf ${SHARED_DIR}/.env ${RELEASE_DIR}/.env
+            ln -sf ${SHARED_DIR}/storage ${RELEASE_DIR}/storage
+
+            # Run maintenance tasks
+            cd ${RELEASE_DIR}
+            php artisan migrate --force
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            # Update permissions
+            chown -R root:www-data ${RELEASE_DIR}
+            chmod -R 775 ${RELEASE_DIR}/bootstrap/cache
+
+            # Update current symlink
+            ln -sf ${RELEASE_DIR} ${CURRENT_DIR}_new
+            mv -Tf ${CURRENT_DIR}_new ${CURRENT_DIR}
+
+            # Restart services
+            systemctl restart php8.4-fpm
+            systemctl restart laravel-queue
+          "
