@@ -58,19 +58,30 @@ jobs:
 
           # Create symlinks to shared files
           ssh root@${{ secrets.SERVER_IP }} "
-            ln -sf ${SHARED_DIR}/.env ${RELEASE_DIR}/.env
+            # Remove the storage directory from the release and symlink to shared
+            rm -rf ${RELEASE_DIR}/storage
             ln -sf ${SHARED_DIR}/storage ${RELEASE_DIR}/storage
+
+            # Link .env file
+            ln -sf ${SHARED_DIR}/.env ${RELEASE_DIR}/.env
+
+            # Ensure proper permissions on shared directories
+            mkdir -p ${SHARED_DIR}/storage/framework/cache
+            mkdir -p ${SHARED_DIR}/storage/framework/sessions
+            mkdir -p ${SHARED_DIR}/storage/framework/views
+            mkdir -p ${SHARED_DIR}/storage/logs
+            mkdir -p ${SHARED_DIR}/storage/app/public
+
+            # Set proper permissions
+            chown -R www-data:www-data ${SHARED_DIR}/storage
+            chmod -R 775 ${SHARED_DIR}/storage
+            chmod -R 775 ${RELEASE_DIR}/bootstrap/cache
 
             # Run maintenance tasks
             cd ${RELEASE_DIR}
-            php artisan migrate --force
             php artisan config:cache
             php artisan route:cache
-            php artisan view:cache
-
-            # Update permissions
-            chown -R root:www-data ${RELEASE_DIR}
-            chmod -R 775 ${RELEASE_DIR}/bootstrap/cache
+            php artisan view:clear
 
             # Update current symlink
             ln -sf ${RELEASE_DIR} ${CURRENT_DIR}_new
