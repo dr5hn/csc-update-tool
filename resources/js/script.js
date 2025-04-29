@@ -1145,4 +1145,151 @@ $(function () {
     if ($("#approve-request-btn").length) {
         handleApproveReject();
     }
+
+    // Function to count changes for each table type
+    function countChangesByTable() {
+        const changes = {
+            region: { modifications: 0, additions: 0, deletions: 0 },
+            subregion: { modifications: 0, additions: 0, deletions: 0 },
+            country: { modifications: 0, additions: 0, deletions: 0 },
+            state: { modifications: 0, additions: 0, deletions: 0 },
+            city: { modifications: 0, additions: 0, deletions: 0 }
+        };
+        
+        // Count changes for each table type
+        $('[data-table-content]').each(function() {
+            const tableType = $(this).attr('data-table-content').toLowerCase();
+            
+            if (tableType && changes[tableType]) {
+                // Count modifications
+                if ($(this).closest('.bg-card').find('h4:contains("Modifications")').length > 0) {
+                    const recordsCount = $(this).find('.overflow-x-auto.mb-4').length;
+                    changes[tableType].modifications += recordsCount;
+                }
+                
+                // Count additions
+                if ($(this).closest('.bg-card').find('h4:contains("Additions")').length > 0) {
+                    const rowsCount = $(this).find('tbody tr').length;
+                    changes[tableType].additions += rowsCount;
+                }
+                
+                // Count deletions
+                if ($(this).closest('.bg-card').find('h4:contains("Deletions")').length > 0) {
+                    changes[tableType].deletions += 1;
+                }
+            }
+        });
+        
+        return changes;
+    }
+    
+    // Function to add notification badges to tabs
+    function addNotificationBadges() {
+        const changes = countChangesByTable();
+        
+        // Add badges to tabs
+        $.each(changes, function(tableType, tableChanges) {
+            const tab = $(`#view-${tableType}-tab`);
+            
+            if (tab.length) {
+                const totalChanges = tableChanges.modifications + 
+                                     tableChanges.additions + 
+                                     tableChanges.deletions;
+                
+                if (totalChanges > 0) {
+                    // Create or update badge
+                    let badge = tab.find('.notification-badge');
+                    
+                    if (badge.length === 0) {
+                        badge = $('<span class="notification-badge ml-2 px-2 py-0.5 text-xs font-bold rounded-full"></span>');
+                        tab.append(badge);
+                    }
+                    
+                    // Set badge content
+                    badge.text(totalChanges);
+                    
+                    // Remove existing color classes
+                    badge.removeClass(function(index, className) {
+                        return (className.match(/(^|\s)bg-\S+/g) || []).join(' ');
+                    });
+                    
+                    // Determine badge color based on change types
+                    if (tableChanges.deletions > 0) {
+                        badge.addClass('bg-red-500 text-white');
+                    } else if (tableChanges.modifications > 0) {
+                        badge.addClass('bg-blue-500 text-white');
+                    } else if (tableChanges.additions > 0) {
+                        badge.addClass('bg-green-500 text-white');
+                    }
+                }
+            }
+        });
+    }
+    
+    // Apply tab visibility toggling
+    const tabButtons = $('#view-table-tabs button');
+    
+    tabButtons.on('click', function() {
+        // Remove active class from all tabs
+        tabButtons.removeClass('active-tab text-blue-700 border-b-2 border-blue-500')
+                  .addClass('text-gray-500');
+        
+        // Add active class to clicked tab
+        $(this).removeClass('text-gray-500')
+               .addClass('active-tab text-blue-700 border-b-2 border-blue-500');
+        
+        // Get the table type from the button id
+        const tableType = $(this).attr('id').replace('view-', '').replace('-tab', '');
+        
+        // Show/hide relevant content
+        $('[data-table-content]').each(function() {
+            const contentTableType = $(this).attr('data-table-content').toLowerCase();
+            
+            if (contentTableType === tableType) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    });
+    
+    // Add CSS for notification badges
+    $('<style>')
+        .prop('type', 'text/css')
+        .html(`
+            .notification-badge {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 20px;
+                height: 20px;
+                border-radius: 9999px;
+                font-size: 0.75rem;
+                font-weight: 600;
+            }
+            
+            #view-table-tabs button.active-tab {
+                border-bottom: 2px solid;
+                color: rgb(29, 78, 216);
+            }
+            
+            /* Initially hide all table content except the active one */
+            [data-table-content] {
+                display: none;
+            }
+            
+            /* Show the region content by default */
+            [data-table-content="region"] {
+                display: block;
+            }
+        `)
+        .appendTo('head');
+    
+    // Initialize notifications and tab visibility
+    addNotificationBadges();
+    
+    // Trigger click on the first tab to initialize visibility
+    if (tabButtons.length > 0) {
+        tabButtons[0].click();
+    }
 });
