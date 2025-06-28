@@ -1106,16 +1106,16 @@ $(function () {
         // Handle reject button click
         $('#reject-request-btn').on('click', function() {
             const changeRequestId = $(this).data('request-id');
-            
+
             // Show rejection reason modal
             window.dispatchEvent(new CustomEvent('open-modal', {
                 detail: 'reject-request-modal'
             }));
-    
+
             // Handle rejection form submission
             $('#reject-form').off('submit').on('submit', function(e) {
                 e.preventDefault();
-                
+
                 $.ajax({
                     url: `/change-requests/${changeRequestId}/reject`,
                     method: 'POST',
@@ -1155,64 +1155,97 @@ $(function () {
             state: { modifications: 0, additions: 0, deletions: 0 },
             city: { modifications: 0, additions: 0, deletions: 0 }
         };
-        
-        // Count changes for each table type
-        $('[data-table-content]').each(function() {
-            const tableType = $(this).attr('data-table-content').toLowerCase();
-            
-            if (tableType && changes[tableType]) {
-                // Count modifications
-                if ($(this).closest('.bg-card').find('h4:contains("Modifications")').length > 0) {
-                    const recordsCount = $(this).find('.overflow-x-auto.mb-4').length;
-                    changes[tableType].modifications += recordsCount;
+
+        // Count modifications - look for div elements with data-table-content in modifications section
+        const modificationsSection = $('h4:contains("Modifications")').closest('.bg-card');
+        if (modificationsSection.length > 0) {
+            modificationsSection.find('[data-table-content]').each(function() {
+                const tableType = $(this).attr('data-table-content').toLowerCase();
+                if (tableType && changes[tableType]) {
+                    // Count the number of modification records (each .overflow-x-auto.mb-4 is one record)
+                    const modificationBlocks = $(this).find('.overflow-x-auto.mb-4');
+                    changes[tableType].modifications += modificationBlocks.length;
                 }
-                
-                // Count additions
-                if ($(this).closest('.bg-card').find('h4:contains("Additions")').length > 0) {
-                    const rowsCount = $(this).find('tbody tr').length;
-                    changes[tableType].additions += rowsCount;
+            });
+        }
+
+        // Count additions - look for div elements with data-table-content in additions section
+        const additionsSection = $('h4:contains("Additions")').closest('.bg-card');
+        if (additionsSection.length > 0) {
+            additionsSection.find('[data-table-content]').each(function() {
+                const tableType = $(this).attr('data-table-content').toLowerCase();
+                if (tableType && changes[tableType]) {
+                    // Count rows in the additions table
+                    const additionRows = $(this).find('tbody tr');
+                    changes[tableType].additions += additionRows.length;
                 }
-                
-                // Count deletions
-                if ($(this).closest('.bg-card').find('h4:contains("Deletions")').length > 0) {
+            });
+        }
+
+        // Count deletions - look for tr elements with data-table-content in deletions section
+        const deletionsSection = $('h4:contains("Deletions")').closest('.bg-card');
+        if (deletionsSection.length > 0) {
+            deletionsSection.find('tbody tr[data-table-content]').each(function() {
+                const tableType = $(this).attr('data-table-content').toLowerCase();
+                if (tableType && changes[tableType]) {
                     changes[tableType].deletions += 1;
                 }
-            }
-        });
-        
+            });
+        }
+
+        // Fallback: If no data-table-content elements found, try to parse from visible text
+        const totalDataElements = $('[data-table-content]').length;
+        if (totalDataElements === 0) {
+            console.log('No data-table-content elements found, using fallback method');
+
+            // Look for table headers to identify which tables have changes
+            modificationsSection.find('h5').each(function() {
+                const tableText = $(this).text().toLowerCase().trim();
+                const tableType = tableText.replace(/s$/, ''); // Remove plural 's'
+                if (changes[tableType]) {
+                    // Count modification blocks in this section
+                    const modificationBlocks = $(this).siblings('.overflow-x-auto');
+                    changes[tableType].modifications += modificationBlocks.length;
+                }
+            });
+
+            additionsSection.find('h5').each(function() {
+                const tableText = $(this).text().toLowerCase().trim();
+                const tableType = tableText.replace(/s$/, ''); // Remove plural 's'
+                if (changes[tableType]) {
+                    // Count rows in additions table
+                    const table = $(this).siblings('.overflow-x-auto').find('tbody tr');
+                    changes[tableType].additions += table.length;
+                }
+            });
+        }
+
         return changes;
     }
-    
+
     // Function to add notification badges to tabs
     function addNotificationBadges() {
         const changes = countChangesByTable();
-        
+
         // Add badges to tabs
         $.each(changes, function(tableType, tableChanges) {
             const tab = $(`#view-${tableType}-tab`);
-            
+
             if (tab.length) {
-                const totalChanges = tableChanges.modifications + 
-                                     tableChanges.additions + 
+                const totalChanges = tableChanges.modifications +
+                                     tableChanges.additions +
                                      tableChanges.deletions;
-                
+
+                // Remove existing badge if any
+                tab.find('.notification-badge').remove();
+
                 if (totalChanges > 0) {
-                    // Create or update badge
-                    let badge = tab.find('.notification-badge');
-                    
-                    if (badge.length === 0) {
-                        badge = $('<span class="notification-badge ml-2 px-2 py-0.5 text-xs font-bold rounded-full"></span>');
-                        tab.append(badge);
-                    }
-                    
+                    // Create new badge
+                    const badge = $('<span class="notification-badge ml-2 px-2 py-0.5 text-xs font-bold rounded-full"></span>');
+
                     // Set badge content
                     badge.text(totalChanges);
-                    
-                    // Remove existing color classes
-                    badge.removeClass(function(index, className) {
-                        return (className.match(/(^|\s)bg-\S+/g) || []).join(' ');
-                    });
-                    
+
                     // Determine badge color based on change types
                     if (tableChanges.deletions > 0) {
                         badge.addClass('bg-red-500 text-white');
@@ -1221,30 +1254,44 @@ $(function () {
                     } else if (tableChanges.additions > 0) {
                         badge.addClass('bg-green-500 text-white');
                     }
+
+                    // Add badge to tab
+                    tab.append(badge);
                 }
             }
         });
     }
-    
+
     // Apply tab visibility toggling
     const tabButtons = $('#view-table-tabs button');
-    
+
     tabButtons.on('click', function() {
         // Remove active class from all tabs
         tabButtons.removeClass('active-tab text-blue-700 border-b-2 border-blue-500')
                   .addClass('text-gray-500');
-        
+
         // Add active class to clicked tab
         $(this).removeClass('text-gray-500')
                .addClass('active-tab text-blue-700 border-b-2 border-blue-500');
-        
+
         // Get the table type from the button id
         const tableType = $(this).attr('id').replace('view-', '').replace('-tab', '');
-        
-        // Show/hide relevant content
+
+        // Show/hide relevant content in all sections
         $('[data-table-content]').each(function() {
             const contentTableType = $(this).attr('data-table-content').toLowerCase();
-            
+
+            if (contentTableType === tableType) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+
+        // Also handle deletion rows which have data-table-content attribute
+        $('tbody tr[data-table-content]').each(function() {
+            const contentTableType = $(this).attr('data-table-content').toLowerCase();
+
             if (contentTableType === tableType) {
                 $(this).show();
             } else {
@@ -1252,44 +1299,38 @@ $(function () {
             }
         });
     });
-    
-    // Add CSS for notification badges
-    $('<style>')
-        .prop('type', 'text/css')
-        .html(`
-            .notification-badge {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                min-width: 20px;
-                height: 20px;
-                border-radius: 9999px;
-                font-size: 0.75rem;
-                font-weight: 600;
+
+
+
+    // Initialize notifications and tab visibility with proper timing
+    function initializeTabSystem() {
+        if ($('#view-table-tabs').length > 0) {
+            console.log('Initializing tab system...');
+
+            // Set first tab as active by default
+            if (tabButtons.length > 0) {
+                $(tabButtons[0]).addClass('active-tab text-blue-700 border-b-2 border-blue-500')
+                               .removeClass('text-gray-500');
             }
-            
-            #view-table-tabs button.active-tab {
-                border-bottom: 2px solid;
-                color: rgb(29, 78, 216);
-            }
-            
-            /* Initially hide all table content except the active one */
-            [data-table-content] {
-                display: none;
-            }
-            
-            /* Show the region content by default */
-            [data-table-content="region"] {
-                display: block;
-            }
-        `)
-        .appendTo('head');
-    
-    // Initialize notifications and tab visibility
-    addNotificationBadges();
-    
-    // Trigger click on the first tab to initialize visibility
-    if (tabButtons.length > 0) {
-        tabButtons[0].click();
+
+            // Add notification badges
+            addNotificationBadges();
+
+            // Debug: Log what changes were found
+            const debugChanges = countChangesByTable();
+            console.log('Change counts by table:', debugChanges);
+            console.log('Data table content elements found:', $('[data-table-content]').length);
+        }
     }
+
+    // Initialize with multiple timing strategies
+    initializeTabSystem();
+
+    // Also try after a short delay in case content is still loading
+    setTimeout(initializeTabSystem, 100);
+
+    // And try when document is fully ready
+    $(document).ready(function() {
+        setTimeout(initializeTabSystem, 200);
+    });
 });

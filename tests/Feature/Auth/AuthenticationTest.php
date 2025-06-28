@@ -8,27 +8,29 @@ test('login screen can be rendered', function () {
     $response->assertStatus(200);
 });
 
-test('users can authenticate using the login screen', function () {
+test('users can request magic link for authentication', function () {
     $user = User::factory()->create();
 
     $response = $this->post('/login', [
         'email' => $user->email,
-        'password' => 'password',
     ]);
 
-    $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertStatus(302); // Redirect after magic link sent
+    $response->assertSessionHas('status', 'We have emailed you a magic link!');
+
+    // Check that a magic link was created
+    $this->assertDatabaseCount('magic_links', 1);
 });
 
-test('users can not authenticate with invalid password', function () {
-    $user = User::factory()->create();
-
-    $this->post('/login', [
-        'email' => $user->email,
-        'password' => 'wrong-password',
+test('users can request magic link even with new email', function () {
+    $response = $this->post('/login', [
+        'email' => 'newuser@example.com',
     ]);
 
-    $this->assertGuest();
+    // Magic link system creates users on the fly, so this should work
+    $response->assertStatus(302);
+    $response->assertSessionHas('status', 'We have emailed you a magic link!');
+    $this->assertDatabaseCount('magic_links', 1);
 });
 
 test('users can logout', function () {

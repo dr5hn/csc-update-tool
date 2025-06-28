@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ChangeRequest extends Model
 {
+    use HasFactory;
     /**
      * The attributes that are mass assignable.
      *
@@ -21,7 +23,14 @@ class ChangeRequest extends Model
         'new_data',
         'rejected_by',
         'rejected_at',
-        'rejection_reason'
+        'rejection_reason',
+        'incorporation_status',
+        'incorporated_at',
+        'incorporated_by',
+        'last_sync_verified_at',
+        'sync_verification_details',
+        'incorporation_details',
+        'incorporation_notes',
     ];
 
     /**
@@ -31,6 +40,10 @@ class ChangeRequest extends Model
      */
     protected $casts = [
         'new_data' => 'array',
+        'sync_verification_details' => 'array',
+        'incorporation_details' => 'array',
+        'incorporated_at' => 'datetime',
+        'last_sync_verified_at' => 'datetime',
     ];
 
     /**
