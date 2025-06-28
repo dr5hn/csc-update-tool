@@ -13,6 +13,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Seed geographical data first
+        $this->call([
+            GeographicalDataSeeder::class,
+        ]);
+
         // User::factory(10)->create();
 
         User::factory()->create([

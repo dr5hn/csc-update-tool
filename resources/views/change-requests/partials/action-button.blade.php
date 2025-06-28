@@ -1,6 +1,8 @@
 <td class="text-center">
-    <button class="edit-btn text-blue-500 hover:text-blue-700">Edit</button>
-    <button class="save-btn text-green-500 hover:text-green-700 hidden">Save</button>
-    <button class="delete-btn text-red-500 hover:text-red-700">Delete</button>
-    <button class="undo-btn text-gray-500 hover:text-gray-700 hidden">Undo</button>
+    <div class="action-buttons">
+        <button class="action-btn action-btn-edit edit-btn">Edit</button>
+        <button class="action-btn action-btn-save save-btn hidden">Save</button>
+        <button class="action-btn action-btn-delete delete-btn">Delete</button>
+        <button class="action-btn action-btn-undo undo-btn hidden">Undo</button>
+    </div>
 </td>
