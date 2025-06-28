@@ -5,54 +5,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-env:
-  PHP_VERSION: '8.4'
-  NODE_VERSION: '22'
-
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ env.PHP_VERSION }}
-          extensions: mbstring, xml, zip, bcmath, intl, gd, curl, mysql, sqlite
-          coverage: none
-
-      - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-interaction
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install NPM dependencies
-        run: npm ci
-
-      - name: Build assets for testing
-        run: npm run build
-
-      - name: Copy environment file
-        run: cp .env.example .env
-
-      - name: Generate application key
-        run: php artisan key:generate
-
-      - name: Create SQLite database
-        run: touch database/database.sqlite
-
-      - name: Run database migrations
-        run: php artisan migrate --force
-
   deploy:
-    needs: test
     runs-on: ubuntu-latest
-    environment: production
     steps:
       - uses: actions/checkout@v4
         with:
@@ -61,26 +16,26 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ env.PHP_VERSION }}
+          php-version: '8.4'
           extensions: mbstring, xml, zip, bcmath, intl, gd, curl, mysql
 
       - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-interaction --no-dev --optimize-autoloader
+        run: composer install --prefer-dist --no-interaction --no-dev
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: '22'
           cache: 'npm'
 
       - name: Install NPM dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build assets
         run: npm run build
 
       - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.9.0
+        uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: ${{ secrets.DEPLOY_KEY }}
 
@@ -89,151 +44,51 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-      - name: Create deployment archive
-        run: |
-          tar -czf deployment.tar.gz \
-            --exclude-from='.deployignore' \
-            --exclude='deployment.tar.gz' \
-            .
-
       - name: Deploy to server
         run: |
-          set -e  # Exit on any error
-
-          # Variables
-          TIMESTAMP=$(date +'%Y%m%d%H%M%S')
-          RELEASE_DIR="/var/www/csc-update-tool/releases/${TIMESTAMP}"
+          RELEASE_DIR="/var/www/csc-update-tool/releases/$(date +'%Y%m%d%H%M%S')"
           SHARED_DIR="/var/www/csc-update-tool/shared"
           CURRENT_DIR="/var/www/csc-update-tool/current"
-          DEPLOY_USER="${{ secrets.DEPLOY_USER || 'deploy' }}"
 
-          echo "🚀 Starting deployment ${TIMESTAMP}..."
+          # Create release directory
+          ssh root@${{ secrets.SERVER_IP }} "mkdir -p ${RELEASE_DIR}"
 
-          # Upload and extract deployment archive
-          scp deployment.tar.gz ${DEPLOY_USER}@${{ secrets.SERVER_IP }}:/tmp/
+          # Upload code
+          rsync -azP --exclude-from='.deployignore' ./ root@${{ secrets.SERVER_IP }}:${RELEASE_DIR}/
 
-          ssh ${DEPLOY_USER}@${{ secrets.SERVER_IP }} << 'EOF'
-            set -e
-
-            TIMESTAMP='${{ env.TIMESTAMP }}'
-            RELEASE_DIR="/var/www/csc-update-tool/releases/${TIMESTAMP}"
-            SHARED_DIR="/var/www/csc-update-tool/shared"
-            CURRENT_DIR="/var/www/csc-update-tool/current"
-
-            echo "📦 Extracting deployment archive..."
-            sudo mkdir -p ${RELEASE_DIR}
-            sudo tar -xzf /tmp/deployment.tar.gz -C ${RELEASE_DIR}
-            sudo rm /tmp/deployment.tar.gz
-
-            echo "🔗 Setting up shared directories and symlinks..."
-            # Ensure shared directories exist
-            sudo mkdir -p ${SHARED_DIR}/storage/framework/{cache,sessions,views}
-            sudo mkdir -p ${SHARED_DIR}/storage/{logs,app/public}
-
-            # Remove storage from release and symlink to shared
-            sudo rm -rf ${RELEASE_DIR}/storage
-            sudo ln -sf ${SHARED_DIR}/storage ${RELEASE_DIR}/storage
+          # Create symlinks to shared files
+          ssh root@${{ secrets.SERVER_IP }} "
+            # Remove the storage directory from the release and symlink to shared
+            rm -rf ${RELEASE_DIR}/storage
+            ln -sf ${SHARED_DIR}/storage ${RELEASE_DIR}/storage
 
             # Link .env file
-            sudo ln -sf ${SHARED_DIR}/.env ${RELEASE_DIR}/.env
+            ln -sf ${SHARED_DIR}/.env ${RELEASE_DIR}/.env
+
+            # Ensure proper permissions on shared directories
+            mkdir -p ${SHARED_DIR}/storage/framework/cache
+            mkdir -p ${SHARED_DIR}/storage/framework/sessions
+            mkdir -p ${SHARED_DIR}/storage/framework/views
+            mkdir -p ${SHARED_DIR}/storage/logs
+            mkdir -p ${SHARED_DIR}/storage/app/public
 
             # Set proper permissions
-            sudo chown -R www-data:www-data ${RELEASE_DIR}
-            sudo chown -R www-data:www-data ${SHARED_DIR}/storage
-            sudo chmod -R 775 ${SHARED_DIR}/storage
-            sudo chmod -R 775 ${RELEASE_DIR}/bootstrap/cache
+            chown -R www-data:www-data ${SHARED_DIR}/storage
+            chmod -R 775 ${SHARED_DIR}/storage
+            chmod -R 775 ${RELEASE_DIR}/bootstrap/cache
 
-            echo "⚡ Running Laravel optimizations..."
+            # Run maintenance tasks
             cd ${RELEASE_DIR}
+            php artisan migrate --force
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:clear
 
-            # Clear all caches first
-            sudo -u www-data php artisan config:clear
-            sudo -u www-data php artisan route:clear
-            sudo -u www-data php artisan view:clear
-            sudo -u www-data php artisan cache:clear
+            # Update current symlink
+            ln -sf ${RELEASE_DIR} ${CURRENT_DIR}_new
+            mv -Tf ${CURRENT_DIR}_new ${CURRENT_DIR}
 
-            # Backup database before migrations
-            echo "💾 Creating database backup..."
-            sudo -u www-data php artisan db:backup 2>/dev/null || echo "⚠️  Database backup failed or not configured"
-
-            # Run database migrations
-            echo "🗄️  Running database migrations..."
-            sudo -u www-data php artisan migrate --force
-
-            # Cache optimizations
-            sudo -u www-data php artisan config:cache
-            sudo -u www-data php artisan route:cache
-            sudo -u www-data php artisan view:cache
-
-            # Storage link
-            sudo -u www-data php artisan storage:link
-
-            echo "🔄 Switching to new release..."
-            # Atomic switch to new release
-            sudo ln -sf ${RELEASE_DIR} ${CURRENT_DIR}_new
-            sudo mv ${CURRENT_DIR}_new ${CURRENT_DIR}
-
-            echo "🔄 Restarting services..."
-            # Graceful restart of services
-            sudo systemctl reload php8.4-fpm
-            sudo systemctl restart laravel-queue
-
-            # Cleanup old releases (keep last 5)
-            echo "🧹 Cleaning up old releases..."
-            cd /var/www/csc-update-tool/releases
-            sudo ls -t | tail -n +6 | xargs -r sudo rm -rf
-
-            echo "✅ Deployment completed successfully!"
-          EOF
-
-      - name: Health Check
-        run: |
-          echo "🏥 Running health check..."
-
-          # Wait a moment for services to start
-          sleep 10
-
-          # Check if the application is responding
-          HEALTH_URL="https://${{ secrets.DOMAIN_NAME || secrets.SERVER_IP }}/health"
-
-          for i in {1..5}; do
-            if curl -f -s "$HEALTH_URL" > /dev/null; then
-              echo "✅ Health check passed!"
-              exit 0
-            fi
-            echo "⏳ Health check attempt $i failed, retrying in 10s..."
-            sleep 10
-          done
-
-          echo "❌ Health check failed after 5 attempts"
-          exit 1
-
-      - name: Rollback on Failure
-        if: failure()
-        run: |
-          echo "🔄 Rolling back deployment due to failure..."
-
-          DEPLOY_USER="${{ secrets.DEPLOY_USER || 'deploy' }}"
-
-          ssh ${DEPLOY_USER}@${{ secrets.SERVER_IP }} << 'EOF'
-            SHARED_DIR="/var/www/csc-update-tool/shared"
-            CURRENT_DIR="/var/www/csc-update-tool/current"
-            RELEASES_DIR="/var/www/csc-update-tool/releases"
-
-            # Get the previous release
-            PREVIOUS_RELEASE=$(ls -t ${RELEASES_DIR} | sed -n '2p')
-
-            if [ -n "$PREVIOUS_RELEASE" ]; then
-              echo "🔄 Rolling back to previous release: $PREVIOUS_RELEASE"
-              sudo ln -sf ${RELEASES_DIR}/${PREVIOUS_RELEASE} ${CURRENT_DIR}_rollback
-              sudo mv ${CURRENT_DIR}_rollback ${CURRENT_DIR}
-
-              # Restart services
-              sudo systemctl reload php8.4-fpm
-              sudo systemctl restart laravel-queue
-
-              echo "✅ Rollback completed"
-            else
-              echo "❌ No previous release found for rollback"
-            fi
-          EOF
+            # Restart services
+            systemctl restart php8.4-fpm
+            systemctl restart laravel-queue
+          "
