@@ -51,7 +51,6 @@ npm-debug.log*
 
 # Build artifacts
 public/hot
-public/build
 public/storage
 
 # Temporary files
