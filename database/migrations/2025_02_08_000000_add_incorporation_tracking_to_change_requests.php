@@ -19,19 +19,19 @@ return new class extends Migration
                 'verified',          // Verified present in external sync
                 'missing',           // Missing from external sync (needs re-incorporation)
                 'conflicted'         // Conflicts with external data
-            ])->default('pending')->after('status');
+            ])->default('pending');
 
             // Track when incorporated
-            $table->timestamp('incorporated_at')->nullable()->after('incorporation_status');
-            $table->string('incorporated_by')->nullable()->after('incorporated_at');
+            $table->timestamp('incorporated_at')->nullable();
+            $table->string('incorporated_by')->nullable();
 
             // Track sync verification
-            $table->timestamp('last_sync_verified_at')->nullable()->after('incorporated_by');
-            $table->json('sync_verification_details')->nullable()->after('last_sync_verified_at');
+            $table->timestamp('last_sync_verified_at')->nullable();
+            $table->json('sync_verification_details')->nullable();
 
             // Track incorporation details
-            $table->json('incorporation_details')->nullable()->after('sync_verification_details');
-            $table->text('incorporation_notes')->nullable()->after('incorporation_details');
+            $table->json('incorporation_details')->nullable();
+            $table->text('incorporation_notes')->nullable();
         });
     }
 
