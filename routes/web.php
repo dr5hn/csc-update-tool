@@ -8,6 +8,36 @@ Route::get('/', function () {
     return redirect()->route('dashboard');
 })->name('home');
 
+// Health check endpoint for deployment monitoring
+Route::get('/health', function () {
+    try {
+        // Check database connection
+        \DB::connection()->getPdo();
+
+        // Check if key tables exist and are accessible
+        $tablesCheck = [
+            'users' => \DB::table('users')->count(),
+            'change_requests' => \DB::table('change_requests')->count(),
+        ];
+
+        return response()->json([
+            'status' => 'healthy',
+            'timestamp' => now()->toISOString(),
+            'database' => 'connected',
+            'tables' => array_keys($tablesCheck),
+            'version' => config('app.version', '1.0.0'),
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'unhealthy',
+            'timestamp' => now()->toISOString(),
+            'error' => 'Database connection failed',
+            'message' => $e->getMessage(),
+        ], 503);
+    }
+})->name('health');
+
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [ChangeRequestController::class, 'dashboard'])->name('dashboard');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

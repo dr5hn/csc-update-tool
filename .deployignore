@@ -1,5 +1,62 @@
+# Version control
 .git
 .github
+.gitignore
+.gitattributes
+
+# Dependencies
 node_modules
-storage
+vendor
+
+# Environment and config
 .env*
+.env.local
+.env.testing
+.env.backup
+
+# Storage (handled via symlinks)
+storage
+
+# Development files
+.editorconfig
+.claudesync
+phpunit.xml
+vite.config.js
+tailwind.config.js
+postcss.config.js
+package.json
+package-lock.json
+composer.json
+composer.lock
+
+# Documentation
+README.md
+docs
+
+# Testing
+tests
+.phpunit.result.cache
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Build artifacts
+public/hot
+public/build
+public/storage
+
+# Temporary files
+tmp
+temp
