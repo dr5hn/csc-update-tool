@@ -21,6 +21,8 @@ class ChangeRequest extends Model
         'description',
         'status',
         'new_data',
+        'approved_by',
+        'approved_at',
         'rejected_by',
         'rejected_at',
         'rejection_reason',
@@ -42,8 +44,10 @@ class ChangeRequest extends Model
         'new_data' => 'array',
         'sync_verification_details' => 'array',
         'incorporation_details' => 'array',
+        'approved_at' => 'datetime',
         'incorporated_at' => 'datetime',
         'last_sync_verified_at' => 'datetime',
+        'rejected_at' => 'datetime',
     ];
 
     /**
