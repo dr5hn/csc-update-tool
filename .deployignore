@@ -6,7 +6,6 @@
 
 # Dependencies
 node_modules
-vendor
 
 # Environment and config
 .env*
